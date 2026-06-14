@@ -3,7 +3,7 @@
 <html class="dark" lang="en"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Load Investigation Data | CaseZero</title>
+<title>Load Investigation Data | intelliSOC</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&amp;family=Geist:wght@400;600&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
@@ -188,7 +188,7 @@
 <span class="material-symbols-outlined text-on-primary text-[20px]">security</span>
 </div>
 <div class="opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap overflow-hidden">
-<h1 class="text-headline-sm font-black text-primary tracking-tight">CaseZero</h1>
+<h1 class="text-headline-sm font-black text-primary tracking-tight">intelliSOC</h1>
 <p class="text-label-caps text-on-surface-variant">SOC Operations</p>
 </div>
 </div>
@@ -395,7 +395,7 @@
 <div class="card-glass rounded overflow-hidden">
 <div class="px-md py-sm bg-surface-container-high/80 border-b border-outline-variant flex items-center justify-between">
 <span class="text-label-caps uppercase font-bold text-primary">Normalization Preview</span>
-<span class="text-[10px] text-on-surface-variant font-medium">Detected: CaseZero Unified Schema v2.1</span>
+<span class="text-[10px] text-on-surface-variant font-medium">Detected: intelliSOC Unified Schema v2.1</span>
 </div>
 <div class="overflow-x-auto">
 <table class="w-full text-left text-body-sm">
@@ -454,7 +454,7 @@
 <div class="space-y-xs">
 <label class="text-label-caps uppercase text-on-surface-variant">Risk Scoring Engine</label>
 <select class="w-full bg-surface-container-high border border-outline-variant rounded p-sm text-body-sm text-on-surface focus:ring-2 focus:ring-primary focus:border-primary transition-all">
-<option>CaseZero Default (Weighted)</option>
+<option>intelliSOC Default (Weighted)</option>
 <option>NIST 800-53 Compliance</option>
 <option>Custom Heuristic Engine</option>
 </select>

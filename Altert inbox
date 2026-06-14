@@ -3,7 +3,7 @@
 <html class="dark" lang="en"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>CaseZero Alert Inbox</title>
+<title>intelliSOC Alert Inbox</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&amp;family=Geist:wght@400;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <style>
@@ -251,7 +251,7 @@
 <!-- Page Header -->
 <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
 <div>
-<h2 class="font-headline-md text-headline-md text-on-surface">CaseZero Alert Inbox</h2>
+<h2 class="font-headline-md text-headline-md text-on-surface">intelliSOC Alert Inbox</h2>
 <p class="text-on-surface-variant text-body-sm">Real-time threat monitoring and incident triage queue</p>
 </div>
 <div class="flex gap-2">
