@@ -1,19 +1,28 @@
 # intelliSOC / Agentic SOC
 
-This repository contains the structured Agentic SOC project with sample security logs and a React frontend converted from the original HTML UI.
+This repository contains the structured intelliSOC / Agentic SOC project with sample security logs and a React frontend converted from the original HTML UI.
+
+## Project Structure
+
+```text
+frontend/
+backend/
+sample_logs/
+docs/
+```
 
 ## Frontend
 
 Location:
 
 ```text
-agentic-soc/frontend
+frontend
 ```
 
 Run locally:
 
 ```bash
-cd agentic-soc/frontend
+cd frontend
 npm install
 npm run dev
 ```
@@ -35,7 +44,13 @@ npm run build
 Location:
 
 ```text
-agentic-soc/sample_logs
+sample_logs
+```
+
+Legacy HTML references are preserved in:
+
+```text
+docs/legacy-html
 ```
 
 Included scenarios:
