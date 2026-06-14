@@ -1,4 +1,4 @@
-import { alerts, approvals, investigation, rawLogs, reports } from "../data/mockData.js";
+import { alerts, approvals, investigation, rawLogs, reports, scenarioCards } from "../data/mockData.js";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
 
@@ -57,6 +57,9 @@ export const api = {
   getInvestigation() {
     return request(`/investigations/${investigation.id}`, {}, investigation);
   },
+  getInvestigationById(investigationId) {
+    return request(`/investigations/${investigationId}`, {}, investigation);
+  },
   getApprovals() {
     return request("/approvals", {}, approvals);
   },
@@ -82,6 +85,9 @@ export const api = {
   },
   getReports() {
     return request("/reports", {}, reports);
+  },
+  getScenarios() {
+    return request("/scenarios", {}, scenarioCards);
   },
   getReport(reportId) {
     const fallback = {

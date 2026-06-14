@@ -1,9 +1,17 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { api } from "../api/client.js";
 import PageHeader from "../components/PageHeader.jsx";
 import { SeverityBadge, StatusBadge } from "../components/Badges.jsx";
-import { reports } from "../data/mockData.js";
+import { reports as mockReports } from "../data/mockData.js";
 
 export default function Reports() {
+  const [reports, setReports] = useState(mockReports);
+
+  useEffect(() => {
+    api.getReports().then(setReports);
+  }, []);
+
   return (
     <div className="space-y-lg">
       <PageHeader eyebrow="Reports" title="Generated Incident Reports" description="Search and review reports generated from completed investigations." />

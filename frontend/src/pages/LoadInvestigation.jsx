@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../api/client.js";
 import { Card } from "../components/Card.jsx";
@@ -71,6 +71,11 @@ export default function LoadInvestigation() {
   const navigate = useNavigate();
   const [progressOpen, setProgressOpen] = useState(false);
   const [uploadStatus, setUploadStatus] = useState("Ready");
+  const [scenarios, setScenarios] = useState(scenarioCards);
+
+  useEffect(() => {
+    api.getScenarios().then(setScenarios);
+  }, []);
 
   const handleFile = useCallback(async () => {
     setUploadStatus("Uploading and validating logs...");
@@ -94,7 +99,7 @@ export default function LoadInvestigation() {
         />
 
         <div className="grid grid-cols-1 gap-md md:grid-cols-2 lg:grid-cols-3">
-          {scenarioCards.map((scenario) => (
+          {scenarios.map((scenario) => (
             <ScenarioCard key={scenario.title} scenario={scenario} />
           ))}
           <div className="group flex cursor-pointer flex-col items-center justify-center rounded border-2 border-dashed border-outline-variant/30 p-xl transition-all hover:border-primary/50">

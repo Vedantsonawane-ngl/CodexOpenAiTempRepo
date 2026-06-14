@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { api } from "../api/client.js";
 import { Card } from "../components/Card.jsx";
 import PageHeader from "../components/PageHeader.jsx";
@@ -9,6 +9,10 @@ export default function Approvals() {
   const [approvals, setApprovals] = useState(initialApprovals);
   const [modal, setModal] = useState(null);
   const [comment, setComment] = useState("");
+
+  useEffect(() => {
+    api.getApprovals().then(setApprovals);
+  }, []);
 
   async function updateStatus(nextStatus) {
     if (!modal) return;

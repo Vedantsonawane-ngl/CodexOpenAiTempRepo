@@ -1,14 +1,24 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { api } from "../api/client.js";
 import Icon from "../components/Icon.jsx";
 import PageHeader from "../components/PageHeader.jsx";
 import { SeverityBadge, StatusBadge } from "../components/Badges.jsx";
-import { alerts } from "../data/mockData.js";
+import { alerts as mockAlerts } from "../data/mockData.js";
 
 export default function Alerts() {
+  const [alerts, setAlerts] = useState(mockAlerts);
   const [query, setQuery] = useState("");
   const [severity, setSeverity] = useState("All");
   const [status, setStatus] = useState("All");
+
+  const refreshAlerts = useCallback(async () => {
+    setAlerts(await api.getAlerts());
+  }, []);
+
+  useEffect(() => {
+    refreshAlerts();
+  }, [refreshAlerts]);
 
   const filtered = useMemo(() => {
     return alerts.filter((alert) => {
@@ -55,7 +65,7 @@ export default function Alerts() {
             <option>Investigating</option>
             <option>Resolved</option>
           </select>
-          <button className="rounded border border-outline-variant px-md py-sm font-geist text-[11px] font-bold uppercase text-primary" type="button">
+          <button className="rounded border border-outline-variant px-md py-sm font-geist text-[11px] font-bold uppercase text-primary" onClick={refreshAlerts} type="button">
             Refresh
           </button>
         </div>

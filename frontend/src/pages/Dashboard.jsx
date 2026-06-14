@@ -1,11 +1,25 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { api } from "../api/client.js";
 import { MetricCard } from "../components/Card.jsx";
 import PageHeader from "../components/PageHeader.jsx";
 import { SeverityBadge, StatusBadge } from "../components/Badges.jsx";
-import { alerts, approvals, reports } from "../data/mockData.js";
+import { alerts as mockAlerts, approvals as mockApprovals, reports as mockReports } from "../data/mockData.js";
 
 export default function Dashboard() {
+  const [alerts, setAlerts] = useState(mockAlerts);
+  const [approvals, setApprovals] = useState(mockApprovals);
+  const [reports, setReports] = useState(mockReports);
   const highAlerts = alerts.filter((alert) => alert.severity === "High").length;
+  const mediumAlerts = alerts.filter((alert) => alert.severity === "Medium").length;
+
+  useEffect(() => {
+    Promise.all([api.getAlerts(), api.getApprovals(), api.getReports()]).then(([nextAlerts, nextApprovals, nextReports]) => {
+      setAlerts(nextAlerts);
+      setApprovals(nextApprovals);
+      setReports(nextReports);
+    });
+  }, []);
 
   return (
     <div className="space-y-lg">
@@ -28,7 +42,7 @@ export default function Dashboard() {
       <div className="grid gap-md md:grid-cols-2 lg:grid-cols-5">
         <MetricCard label="Total Alerts" value={alerts.length} icon="warning" />
         <MetricCard label="High Severity" value={highAlerts} icon="priority_high" tone="danger" />
-        <MetricCard label="Investigations" value="4" icon="security" />
+        <MetricCard label="Investigations" value={reports.length} icon="security" />
         <MetricCard label="Pending Approvals" value={approvals.length} icon="approval_delegation" />
         <MetricCard label="Reports Generated" value={reports.length} icon="description" />
       </div>
@@ -81,10 +95,10 @@ export default function Dashboard() {
             <div>
               <div className="mb-xs flex justify-between text-sm">
                 <span>Medium</span>
-                <span>1</span>
+                <span>{mediumAlerts}</span>
               </div>
               <div className="h-2 rounded bg-surface-container-high">
-                <div className="h-2 rounded bg-warning" style={{ width: "25%" }} />
+                <div className="h-2 rounded bg-warning" style={{ width: `${alerts.length ? (mediumAlerts / alerts.length) * 100 : 0}%` }} />
               </div>
             </div>
           </div>

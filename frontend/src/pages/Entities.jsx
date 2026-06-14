@@ -1,15 +1,26 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { api } from "../api/client.js";
 import { Card } from "../components/Card.jsx";
 import PageHeader from "../components/PageHeader.jsx";
 import { investigation } from "../data/mockData.js";
 
 export default function Entities() {
-  const entityTypes = Object.keys(investigation.entities);
+  const [currentInvestigation, setCurrentInvestigation] = useState(investigation);
+  const entityTypes = Object.keys(currentInvestigation.entities);
   const [activeType, setActiveType] = useState(entityTypes[0]);
-  const [selected, setSelected] = useState(investigation.entities[entityTypes[0]][0]);
+  const [selected, setSelected] = useState(currentInvestigation.entities[entityTypes[0]][0]);
+
+  useEffect(() => {
+    api.getInvestigation().then((nextInvestigation) => {
+      const nextTypes = Object.keys(nextInvestigation.entities);
+      setCurrentInvestigation(nextInvestigation);
+      setActiveType(nextTypes[0]);
+      setSelected(nextInvestigation.entities[nextTypes[0]][0]);
+    });
+  }, []);
 
   const rows = useMemo(() => {
-    return investigation.entities[activeType].map((value, index) => ({
+    return (currentInvestigation.entities[activeType] || []).map((value, index) => ({
       value,
       type: activeType,
       risk: activeType === "Countries" && value === "RU" ? "High" : index === 0 ? "Medium" : "Low",
@@ -19,7 +30,7 @@ export default function Entities() {
       lastSeen: "09:29",
       eventCount: activeType === "Users" ? 8 : 2
     }));
-  }, [activeType]);
+  }, [activeType, currentInvestigation.entities]);
 
   return (
     <div className="space-y-lg">
@@ -36,10 +47,10 @@ export default function Entities() {
             className={`rounded px-md py-sm font-geist text-[11px] font-bold uppercase ${
               activeType === type ? "bg-primary text-on-primary" : "border border-outline-variant text-primary"
             }`}
-            onClick={() => {
-              setActiveType(type);
-              setSelected(investigation.entities[type][0]);
-            }}
+              onClick={() => {
+                setActiveType(type);
+                setSelected(currentInvestigation.entities[type][0]);
+              }}
             type="button"
           >
             {type}
@@ -79,9 +90,9 @@ export default function Entities() {
           <p className="font-geist text-[11px] uppercase text-on-surface-variant">Selected Entity</p>
           <h3 className="mt-xs break-words text-lg font-bold text-primary">{selected}</h3>
           <div className="mt-md space-y-sm text-sm">
-            <p className="text-on-surface-variant">Related alert: ALT-1001</p>
-            <p className="text-on-surface-variant">Related investigation: INV-1001</p>
-            <p className="text-on-surface-variant">Source: Correlated credential compromise timeline</p>
+            <p className="text-on-surface-variant">Related alert: {currentInvestigation.alertId}</p>
+            <p className="text-on-surface-variant">Related investigation: {currentInvestigation.id}</p>
+            <p className="text-on-surface-variant">Source: Correlated {currentInvestigation.attackType} timeline</p>
           </div>
         </Card>
       </div>
