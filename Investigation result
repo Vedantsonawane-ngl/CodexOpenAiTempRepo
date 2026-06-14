@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&amp;family=Geist:wght@400;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(20, 20, 22, 0.6);
+            backdrop-filter: blur(28px);
+            border: 1px solid rgba(129, 140, 248, 0.15);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .glass-panel:hover {
+            background: rgba(26, 26, 28, 0.7);
+            border-color: rgba(129, 140, 248, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5), 0 0 15px rgba(129, 140, 248, 0.1);
+        }
+        .glow-indigo {
+            box-shadow: 0 0 20px rgba(129, 140, 248, 0.15);
+        }
+        .scan-line {
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #818cf8, transparent);
+            position: absolute;
+            top: 0;
+            animation: scan 6s linear infinite;
+            opacity: 0.2;
+        }
+        @keyframes scan {
+            0% { top: -2%; }
+            100% { top: 102%; }
+        }
+        @keyframes atmospheric-pulse {
+            0%, 100% { opacity: 0.03; transform: scale(1); }
+            50% { opacity: 0.08; transform: scale(1.05); }
+        }
+        .bg-pulse {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 50% 50%, #818cf8, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+            animation: atmospheric-pulse 8s ease-in-out infinite;
+        }
+        .radial-hover:hover {
+            background: radial-gradient(circle at var(--x) var(--y), rgba(129, 140, 248, 0.2) 0%, transparent 70%);
+        }
+        .btn-kinetic {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .btn-kinetic:active {
+            transform: scale(0.96);
+        }
+        .entity-chip {
+            transition: all 0.3s ease;
+        }
+        .entity-chip:hover {
+            background-color: rgba(129, 140, 248, 0.15);
+            border-color: #818cf8;
+            transform: translateY(-1px);
+        }
+        .timeline-event {
+            transition: all 0.3s ease;
+        }
+        .timeline-event:hover {
+            transform: translateX(4px);
+        }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: #131314; }
+        ::-webkit-scrollbar-thumb { background: #454653; border-radius: 10px; }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-container": "#4f319c",
+                        "surface-container": "#201f20",
+                        "surface-tint": "#bdc2ff",
+                        "obsidian-indigo-glow": "rgba(129, 140, 248, 0.4)",
+                        "background": "#131314",
+                        "tertiary": "#d3bbff",
+                        "on-secondary-fixed-variant": "#4f319c",
+                        "primary-container": "#818cf8",
+                        "surface-container-lowest": "#0e0e0f",
+                        "inverse-primary": "#4953bc",
+                        "on-surface-variant": "#c6c5d5",
+                        "primary-fixed": "#e0e0ff",
+                        "on-primary": "#131e8c",
+                        "tertiary-container": "#a87dff",
+                        "surface-container-low": "#1c1b1c",
+                        "tertiary-fixed": "#eaddff",
+                        "on-tertiary-fixed-variant": "#5721af",
+                        "inverse-surface": "#e5e2e3",
+                        "status-error": "#ffb4ab",
+                        "on-tertiary": "#3f008e",
+                        "surface-container-highest": "#353436",
+                        "primary": "#bdc2ff",
+                        "error-container": "#93000a",
+                        "surface-container-high": "#2a2a2b",
+                        "secondary": "#cebdff",
+                        "on-tertiary-container": "#3c0088",
+                        "error": "#ffb4ab",
+                        "surface-variant": "#353436",
+                        "on-surface": "#e5e2e3",
+                        "on-secondary-container": "#bea8ff",
+                        "on-tertiary-fixed": "#25005a",
+                        "on-error-container": "#ffdad6",
+                        "on-error": "#690005",
+                        "secondary-fixed": "#e8ddff",
+                        "tertiary-fixed-dim": "#d3bbff",
+                        "outline-variant": "#454653",
+                        "surface-obsidian": "#131314",
+                        "outline": "#908f9e",
+                        "inverse-on-surface": "#313031",
+                        "on-primary-container": "#101b8a",
+                        "status-healthy": "#22c55e",
+                        "on-background": "#e5e2e3",
+                        "on-primary-fixed-variant": "#2f3aa3",
+                        "on-secondary-fixed": "#21005e",
+                        "on-secondary": "#381385",
+                        "surface-dim": "#131314",
+                        "secondary-fixed-dim": "#cebdff",
+                        "surface": "#131314",
+                        "surface-bright": "#39393a",
+                        "on-primary-fixed": "#000767",
+                        "primary-fixed-dim": "#bdc2ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "stack-md": "1rem",
+                        "stack-sm": "0.5rem",
+                        "gutter": "1rem",
+                        "panel-padding": "1.5rem",
+                        "margin": "1.5rem"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Inter"],
+                        "label-caps": ["Geist"],
+                        "body-md": ["Inter"],
+                        "headline-sm": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "code-sm": ["Geist"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "900"}],
+                        "label-caps": ["11px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "headline-sm": ["18px", {"lineHeight": "24px", "fontWeight": "700"}],
+                        "body-sm": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+                        "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "900"}],
+                        "code-sm": ["10px", {"lineHeight": "14px", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface font-body-md selection:bg-primary-container selection:text-on-primary-container overflow-x-hidden">
+<div class="bg-pulse"></div>
+<!-- TopNavBar -->
+<header class="fixed top-0 right-0 left-0 z-40 flex items-center justify-between px-gutter bg-surface-container/80 backdrop-blur-md w-full h-14 border-b border-outline-variant">
+<div class="flex items-center gap-md">
+<span class="font-label-caps text-label-caps tracking-widest text-primary hover:text-white transition-colors cursor-default">SENTINEL_CORE</span>
+<div class="ml-stack-md relative">
+<span class="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-outline text-sm">search</span>
+<input class="bg-surface-container-low border-none rounded-lg text-body-sm pl-8 pr-4 py-1 focus:ring-1 focus:ring-primary w-64 transition-all hover:bg-surface-container-highest" placeholder="Search parameters..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-stack-md">
+<span class="text-on-surface-variant font-label-caps text-[10px] uppercase tracking-widest bg-surface-container-highest px-2 py-0.5 rounded shadow-sm">System Status: Connected</span>
+<div class="flex gap-stack-sm text-on-surface-variant">
+<span class="material-symbols-outlined cursor-pointer hover:text-primary transition-all p-1 active:scale-90">account_tree</span>
+<span class="material-symbols-outlined cursor-pointer hover:text-primary transition-all p-1 active:scale-90">settings</span>
+<div class="relative">
+<span class="material-symbols-outlined cursor-pointer hover:text-primary transition-all p-1 active:scale-90">notifications</span>
+<span class="absolute top-1 right-1 w-1.5 h-1.5 bg-status-error rounded-full animate-ping opacity-75"></span>
+<span class="absolute top-1 right-1 w-1.5 h-1.5 bg-status-error rounded-full"></span>
+</div>
+</div>
+<div class="h-8 w-px bg-outline-variant mx-2"></div>
+<div class="flex items-center gap-stack-sm cursor-pointer group px-2 py-1 rounded-lg hover:bg-surface-container-high transition-all active:scale-95">
+<div class="text-right hidden sm:block">
+<p class="font-label-caps text-label-caps leading-none group-hover:text-white transition-colors">Analyst Profile</p>
+<p class="text-[9px] text-primary">Tier 3 Responder</p>
+</div>
+<img alt="Profile" class="w-8 h-8 rounded-full border border-outline-variant group-hover:border-primary transition-colors" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCSTHcKTmH2_YFVU1qm1gYI1BTCSqzbH-uOZiCoGPEfP0WANqNA_W1wHk1xf0CLysSFFu2jczuGy_aVKdwvGzxeqSaSQAW9EgKByvmQoQqZo1SLcwWTa8pwGHwXxe2Ml-79tTdbgPO0gIjg4SWWt2bow4HiV5p3dX27W0CdM0A_Fq7jJzHH5M30EDytJUWgdFcK9M2w7WgNzunbatrskNh_Cb10N9oGNqtuHhGZ20b7DGBAJNWeXhiZsWYMW_e3NVUKauvck-7-aIpT"/>
+</div>
+</div>
+</header>
+<!-- SideNavBar -->
+<nav class="fixed left-0 top-0 h-screen w-16 md:w-64 border-r border-outline-variant bg-background/90 backdrop-blur-md z-50 transition-all duration-300">
+<div class="p-panel-padding flex items-center gap-md">
+<div class="w-8 h-8 bg-primary rounded flex items-center justify-center shadow-[0_0_15px_rgba(189,194,255,0.3)] group cursor-pointer active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-on-primary">security</span>
+</div>
+<div class="hidden md:block">
+<h1 class="font-display-lg text-display-lg font-bold text-primary leading-none tracking-tight">CYBER_OPS</h1>
+<p class="font-label-caps text-[10px] text-on-surface-variant">Vigilance Level: High</p>
+</div>
+</div>
+<div class="flex-1 px-4 py-stack-md space-y-2">
+<a class="flex items-center gap-md text-on-surface-variant hover:text-on-surface p-md hover:bg-surface-container-high transition-all rounded-lg group active:scale-95 duration-100" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">notifications_active</span>
+<span class="hidden md:block font-label-caps text-label-caps">Alerts</span>
+</a>
+<a class="flex items-center gap-md bg-secondary-container text-on-secondary-container rounded-lg p-md transition-all group active:scale-95 duration-100 shadow-lg shadow-purple-900/20" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform" style="font-variation-settings: 'FILL' 1;">search_check</span>
+<span class="hidden md:block font-label-caps text-label-caps">Investigations</span>
+</a>
+<a class="flex items-center gap-md text-on-surface-variant hover:text-on-surface p-md hover:bg-surface-container-high transition-all rounded-lg group active:scale-95 duration-100" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">assessment</span>
+<span class="hidden md:block font-label-caps text-label-caps">Reports</span>
+</a>
+</div>
+<div class="p-4 border-t border-outline-variant">
+<div class="bg-surface-container-low rounded-xl p-stack-md flex items-center justify-center md:justify-start gap-md hover:bg-surface-container transition-colors">
+<div class="w-2 h-2 rounded-full bg-status-healthy animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>
+<span class="hidden md:block text-[10px] font-label-caps text-on-surface-variant uppercase tracking-tighter">Live Feed Active</span>
+</div>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="ml-16 md:ml-64 mt-14 mr-0 lg:mr-80 min-h-screen p-gutter bg-transparent relative overflow-hidden z-10">
+<div class="relative z-10 max-w-7xl mx-auto space-y-gutter">
+<!-- Breadcrumbs & Header -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-stack-md">
+<div>
+<div class="flex items-center gap-2 text-on-surface-variant font-label-caps text-[10px] uppercase mb-1">
+<span class="hover:text-primary transition-colors cursor-pointer">Investigations</span>
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+<span class="text-primary">RIYA-ACME-01</span>
+</div>
+<h2 class="font-headline-md text-headline-md text-on-surface flex items-center gap-stack-sm">
+                    Investigation: RIYA-ACME-01
+                    <span class="material-symbols-outlined text-status-healthy text-2xl animate-pulse" style="font-variation-settings: 'FILL' 1;">verified</span>
+</h2>
+</div>
+<div class="flex gap-stack-sm">
+<button class="btn-kinetic px-stack-md py-2 border border-outline-variant text-on-surface font-label-caps text-label-caps rounded hover:bg-surface-container hover:border-primary/50 transition-all uppercase">Export Report</button>
+<button class="btn-kinetic px-stack-md py-2 bg-primary text-on-primary font-label-caps text-label-caps rounded hover:brightness-110 shadow-[0_0_20px_rgba(189,194,255,0.3)] transition-all uppercase">Share Result</button>
+</div>
+</div>
+<!-- Top Summary Cards -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-stack-md">
+<div class="glass-panel p-stack-md rounded-xl relative overflow-hidden group cursor-default radial-hover">
+<div class="scan-line"></div>
+<p class="font-label-caps text-[10px] text-on-surface-variant uppercase mb-1">Attack Type</p>
+<p class="font-headline-sm text-headline-sm text-on-surface">Credential Compromise</p>
+<span class="material-symbols-outlined absolute -bottom-2 -right-2 text-6xl text-on-surface opacity-5 group-hover:opacity-10 transition-opacity">key</span>
+</div>
+<div class="glass-panel p-stack-md rounded-xl relative overflow-hidden group cursor-default radial-hover border-l-4 border-status-error">
+<p class="font-label-caps text-[10px] text-on-surface-variant uppercase mb-1">Severity</p>
+<p class="font-headline-sm text-headline-sm text-status-error">High</p>
+<span class="material-symbols-outlined absolute -bottom-2 -right-2 text-6xl text-status-error opacity-10 group-hover:opacity-20 transition-opacity">priority_high</span>
+</div>
+<div class="glass-panel p-stack-md rounded-xl relative overflow-hidden group cursor-default radial-hover">
+<p class="font-label-caps text-[10px] text-on-surface-variant uppercase mb-1">Confidence</p>
+<div class="flex items-end gap-2">
+<p class="font-headline-sm text-headline-sm text-tertiary">82%</p>
+<div class="flex-1 h-1 bg-surface-container-highest rounded-full mb-2 overflow-hidden">
+<div class="h-full bg-tertiary-container w-[82%] shadow-[0_0_12px_#a87dff] transition-all duration-1000"></div>
+</div>
+</div>
+</div>
+<div class="glass-panel p-stack-md rounded-xl relative overflow-hidden group cursor-default radial-hover">
+<p class="font-label-caps text-[10px] text-on-surface-variant uppercase mb-1">Status</p>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-status-healthy text-sm" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<p class="font-headline-sm text-headline-sm text-on-surface">Completed</p>
+</div>
+</div>
+</div>
+<!-- Content Area: Summary & Entities -->
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-gutter">
+<div class="xl:col-span-2 space-y-gutter">
+<!-- Summary -->
+<section class="glass-panel p-panel-padding rounded-xl radial-hover">
+<h3 class="font-headline-sm text-headline-sm mb-stack-md border-b border-outline-variant pb-2">Investigation Summary</h3>
+<p class="text-on-surface-variant leading-relaxed font-body-md">
+                        Analysis of account <code class="bg-surface-container-highest px-1.5 py-0.5 rounded text-primary hover:bg-primary hover:text-on-primary transition-colors cursor-pointer">riya.sharma@acme.corp</code> reveals a sequence of anomalous authentication events originating from uncharacteristic geolocations (Tor Exit Nodes). Post-authentication, the actor attempted high-frequency lateral movement across the VPC via SMB, successfully accessing the <code class="bg-surface-container-highest px-1.5 py-0.5 rounded text-primary hover:bg-primary hover:text-on-primary transition-colors cursor-pointer">prod-db-cluster-04</code>. The pattern suggests stolen session tokens harvested through a localized phishing campaign.
+                    </p>
+</section>
+<!-- Extracted Entities -->
+<section class="glass-panel p-panel-padding rounded-xl radial-hover">
+<h3 class="font-headline-sm text-headline-sm mb-stack-md">Extracted Entities</h3>
+<div class="flex flex-wrap gap-stack-sm">
+<div class="entity-chip flex items-center gap-2 bg-surface-container-highest px-3 py-1.5 rounded-lg border border-outline-variant group cursor-pointer">
+<span class="material-symbols-outlined text-sm text-primary group-hover:scale-110 transition-transform">person</span>
+<span class="font-code-sm text-label-caps">USER: riya.sharma</span>
+</div>
+<div class="entity-chip flex items-center gap-2 bg-surface-container-highest px-3 py-1.5 rounded-lg border border-outline-variant group cursor-pointer">
+<span class="material-symbols-outlined text-sm text-tertiary group-hover:scale-110 transition-transform">router</span>
+<span class="font-code-sm text-label-caps">IP: 185.220.101.44</span>
+</div>
+<div class="entity-chip flex items-center gap-2 bg-surface-container-highest px-3 py-1.5 rounded-lg border border-outline-variant group cursor-pointer">
+<span class="material-symbols-outlined text-sm text-on-surface-variant group-hover:scale-110 transition-transform">dns</span>
+<span class="font-code-sm text-label-caps">DOMAIN: tor-exit-node.net</span>
+</div>
+<div class="entity-chip flex items-center gap-2 bg-surface-container-highest px-3 py-1.5 rounded-lg border border-outline-variant group cursor-pointer">
+<span class="material-symbols-outlined text-sm text-secondary group-hover:scale-110 transition-transform">computer</span>
+<span class="font-code-sm text-label-caps">HOST: ENG-WORKSTATION-042</span>
+</div>
+</div>
+</section>
+<!-- MITRE ATT&CK Mapping -->
+<section class="glass-panel p-panel-padding rounded-xl overflow-hidden radial-hover">
+<h3 class="font-headline-sm text-headline-sm mb-stack-md">MITRE ATT&amp;CK® Mapping</h3>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="border-b border-outline-variant">
+<th class="py-3 px-4 font-label-caps text-label-caps text-on-surface-variant uppercase">Technique ID</th>
+<th class="py-3 px-4 font-label-caps text-label-caps text-on-surface-variant uppercase">Technique</th>
+<th class="py-3 px-4 font-label-caps text-label-caps text-on-surface-variant uppercase">Tactic</th>
+<th class="py-3 px-4 font-label-caps text-label-caps text-on-surface-variant uppercase">Linked Finding</th>
+</tr>
+</thead>
+<tbody class="text-body-sm">
+<tr class="border-b border-outline-variant/30 hover:bg-indigo-900/10 transition-colors cursor-pointer group">
+<td class="py-3 px-4 font-code-sm text-primary group-hover:font-bold">T1078.004</td>
+<td class="py-3 px-4">Cloud Accounts</td>
+<td class="py-3 px-4"><span class="bg-secondary-container text-on-secondary-container px-2 py-0.5 rounded text-[10px] uppercase font-bold group-hover:shadow-[0_0_8px_rgba(79,49,156,0.5)] transition-all">Initial Access</span></td>
+<td class="py-3 px-4 text-on-surface-variant group-hover:text-on-surface">Anomalous Cloud Login</td>
+</tr>
+<tr class="border-b border-outline-variant/30 hover:bg-indigo-900/10 transition-colors cursor-pointer group">
+<td class="py-3 px-4 font-code-sm text-primary group-hover:font-bold">T1550.004</td>
+<td class="py-3 px-4">Web Session Cookie</td>
+<td class="py-3 px-4"><span class="bg-secondary-container text-on-secondary-container px-2 py-0.5 rounded text-[10px] uppercase font-bold group-hover:shadow-[0_0_8px_rgba(79,49,156,0.5)] transition-all">Lateral Movement</span></td>
+<td class="py-3 px-4 text-on-surface-variant group-hover:text-on-surface">Session Hijacking Evidence</td>
+</tr>
+<tr class="hover:bg-indigo-900/10 transition-colors cursor-pointer group">
+<td class="py-3 px-4 font-code-sm text-primary group-hover:font-bold">T1539</td>
+<td class="py-3 px-4">Steal Web Session Cookie</td>
+<td class="py-3 px-4"><span class="bg-secondary-container text-on-secondary-container px-2 py-0.5 rounded text-[10px] uppercase font-bold group-hover:shadow-[0_0_8px_rgba(79,49,156,0.5)] transition-all">Collection</span></td>
+<td class="py-3 px-4 text-on-surface-variant group-hover:text-on-surface">Token Theft Pattern</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</div>
+<!-- Timeline -->
+<div class="space-y-gutter">
+<section class="glass-panel p-panel-padding rounded-xl h-full radial-hover">
+<h3 class="font-headline-sm text-headline-sm mb-stack-md flex items-center gap-2">
+<span class="material-symbols-outlined text-primary group-hover:rotate-12 transition-transform">history</span>
+                        Correlated Timeline
+                    </h3>
+<div class="relative pl-6 space-y-6 before:content-[''] before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-outline-variant">
+<!-- Event 1 -->
+<div class="timeline-event relative group cursor-pointer">
+<div class="absolute -left-[20px] top-1.5 w-3 h-3 rounded-full bg-status-error ring-4 ring-background z-10 group-hover:shadow-[0_0_12px_rgba(255,180,171,0.6)] transition-all"></div>
+<div>
+<p class="font-code-sm text-[10px] text-on-surface-variant mb-1 group-hover:text-primary transition-colors">2023-10-24 04:12:01 UTC</p>
+<p class="font-label-caps text-label-caps text-on-surface">Login from Unknown IP</p>
+<div class="mt-2 bg-surface-container-lowest p-2 rounded border border-outline-variant overflow-hidden group-hover:border-primary/30 transition-colors">
+<code class="font-code-sm text-[10px] text-tertiary block whitespace-pre">src_ip: 185.220.101.44
+user: riya.sharma
+status: success</code>
+</div>
+</div>
+</div>
+<!-- Event 2 -->
+<div class="timeline-event relative group cursor-pointer">
+<div class="absolute -left-[20px] top-1.5 w-3 h-3 rounded-full bg-primary ring-4 ring-background z-10 group-hover:shadow-[0_0_12px_rgba(189,194,255,0.6)] transition-all"></div>
+<div>
+<p class="font-code-sm text-[10px] text-on-surface-variant mb-1 group-hover:text-primary transition-colors">2023-10-24 04:15:44 UTC</p>
+<p class="font-label-caps text-label-caps text-on-surface">Enumeration Activity</p>
+<div class="mt-2 bg-surface-container-lowest p-2 rounded border border-outline-variant group-hover:border-primary/30 transition-colors">
+<code class="font-code-sm text-[10px] text-on-surface-variant block">action: ListTables
+target: prod-db-04</code>
+</div>
+</div>
+</div>
+<!-- Event 3 -->
+<div class="timeline-event relative group cursor-pointer">
+<div class="absolute -left-[20px] top-1.5 w-3 h-3 rounded-full bg-secondary ring-4 ring-background z-10 group-hover:shadow-[0_0_12px_rgba(206,189,255,0.6)] transition-all"></div>
+<div>
+<p class="font-code-sm text-[10px] text-on-surface-variant mb-1 group-hover:text-primary transition-colors">2023-10-24 04:18:12 UTC</p>
+<p class="font-label-caps text-label-caps text-on-surface">Data Exfiltration Attempt</p>
+<div class="mt-2 bg-surface-container-lowest p-2 rounded border border-outline-variant group-hover:border-primary/30 transition-colors">
+<code class="font-code-sm text-[10px] text-on-error block">blocked: TRUE
+policy: DataGuard_Pro</code>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+</div>
+<!-- Evidence & Recommendations -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-gutter">
+<!-- Evidence-backed Findings -->
+<section class="space-y-stack-md">
+<h3 class="font-headline-sm text-headline-sm px-1">Evidence-backed Findings</h3>
+<div class="glass-panel p-stack-md rounded-xl space-y-stack-sm relative overflow-hidden group radial-hover cursor-pointer">
+<div class="flex justify-between items-start">
+<h4 class="font-label-caps text-label-caps text-primary group-hover:translate-x-1 transition-transform">F-102: Geolocation Mismatch</h4>
+<span class="bg-status-error/20 text-status-error px-2 py-0.5 rounded text-[9px] font-bold animate-pulse">CRITICAL</span>
+</div>
+<p class="text-body-sm text-on-surface-variant">User logged in from Berlin while physical badge-out occurred in Singapore 12 minutes prior. Physical impossibility detected.</p>
+<div class="bg-surface-container-lowest rounded p-stack-sm border border-outline-variant mt-2 group-hover:border-primary/40 transition-colors">
+<code class="font-code-sm text-tertiary">badge_out_ts: 2023-10-24T04:00:00Z
+login_ts: 2023-10-24T04:12:01Z</code>
+</div>
+</div>
+<div class="glass-panel p-stack-md rounded-xl space-y-stack-sm radial-hover cursor-pointer group">
+<h4 class="font-label-caps text-label-caps text-primary group-hover:translate-x-1 transition-transform">F-103: Abnormal API Pattern</h4>
+<p class="text-body-sm text-on-surface-variant">450% increase in API requests compared to historical 30-day baseline for this user identity.</p>
+<div class="bg-surface-container-lowest rounded p-stack-sm border border-outline-variant mt-2 group-hover:border-primary/40 transition-colors">
+<code class="font-code-sm text-on-surface-variant">baseline: 12 req/min
+observed: 54 req/min</code>
+</div>
+</div>
+</section>
+<!-- Recommendations -->
+<section class="glass-panel p-panel-padding rounded-xl bg-gradient-to-br from-surface-container-low/80 to-background/90 radial-hover border-indigo-500/20">
+<h3 class="font-headline-sm text-headline-sm mb-stack-md">Incident Recommendations</h3>
+<ul class="space-y-stack-md">
+<li class="flex gap-stack-sm group cursor-default">
+<span class="material-symbols-outlined text-status-healthy group-hover:scale-125 transition-transform">bolt</span>
+<div class="text-body-sm">
+<p class="font-bold text-on-surface group-hover:text-primary transition-colors">Immediate Identity Containment</p>
+<p class="text-on-surface-variant">Execute global sign-out for <code class="text-primary">riya.sharma</code> across all connected platforms.</p>
+</div>
+</li>
+<li class="flex gap-stack-sm group cursor-default">
+<span class="material-symbols-outlined text-status-healthy group-hover:scale-125 transition-transform">bolt</span>
+<div class="text-body-sm">
+<p class="font-bold text-on-surface group-hover:text-primary transition-colors">Network Layer Hardening</p>
+<p class="text-on-surface-variant">Blacklist detected Tor Exit Node IPs at the Cloud WAF layer for the next 48 hours.</p>
+</div>
+</li>
+<li class="flex gap-stack-sm group cursor-default">
+<span class="material-symbols-outlined text-primary group-hover:rotate-180 transition-transform duration-500">info</span>
+<div class="text-body-sm">
+<p class="font-bold text-on-surface group-hover:text-primary transition-colors">Post-Incident Education</p>
+<p class="text-on-surface-variant">Enroll engineering department in mandatory session-hijacking awareness training.</p>
+</div>
+</li>
+</ul>
+</section>
+</div>
+</div>
+</main>
+<!-- NavigationDrawer (Right Panel) -->
+<aside class="fixed right-0 top-14 h-[calc(100%-3.5rem)] w-80 border-l border-outline-variant bg-surface-container-low/90 backdrop-blur-xl flex flex-col z-30 hidden lg:flex shadow-2xl">
+<div class="p-panel-padding border-b border-outline-variant">
+<h3 class="font-headline-sm text-headline-sm group cursor-default">Context Panel</h3>
+<p class="font-label-caps text-label-caps text-outline uppercase tracking-widest">Asset Intelligence</p>
+</div>
+<div class="flex-1 overflow-y-auto p-panel-padding space-y-gutter">
+<!-- Approval Actions -->
+<div class="space-y-stack-md">
+<div class="flex items-center justify-between">
+<p class="font-label-caps text-label-caps text-on-surface-variant">Approval Actions</p>
+<span class="text-[10px] font-bold text-tertiary bg-tertiary/10 px-2 py-0.5 rounded uppercase animate-pulse">3 Pending</span>
+</div>
+<div class="glass-panel p-stack-md rounded-xl border-dashed border-tertiary/40 group radial-hover">
+<p class="text-body-sm font-bold text-on-surface mb-2 group-hover:text-tertiary transition-colors">Reset Password</p>
+<p class="text-[11px] text-on-surface-variant mb-3">Force mandatory password rotation upon next login.</p>
+<button class="btn-kinetic w-full py-2 bg-tertiary text-on-tertiary font-label-caps text-label-caps rounded hover:brightness-110 transition-all uppercase flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20">
+<span class="material-symbols-outlined text-sm group-hover:animate-spin">lock_reset</span>
+                    Approve Action
+                </button>
+<p class="mt-2 text-center text-[10px] text-tertiary/80 uppercase font-bold tracking-widest">Pending Human Approval</p>
+</div>
+<div class="glass-panel p-stack-md rounded-xl border-dashed border-tertiary/40 group radial-hover">
+<p class="text-body-sm font-bold text-on-surface mb-2 group-hover:text-tertiary transition-colors">Revoke Sessions</p>
+<p class="text-[11px] text-on-surface-variant mb-3">Immediately invalidate all active OIDC/SAML tokens.</p>
+<button class="btn-kinetic w-full py-2 bg-surface-container-highest text-tertiary border border-tertiary/30 font-label-caps text-label-caps rounded hover:bg-tertiary hover:text-on-tertiary transition-all uppercase flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">logout</span>
+                    Approve Action
+                </button>
+<p class="mt-2 text-center text-[10px] text-tertiary/80 uppercase font-bold tracking-widest">Pending Human Approval</p>
+</div>
+<div class="glass-panel p-stack-md rounded-xl border-dashed border-tertiary/40 group radial-hover">
+<p class="text-body-sm font-bold text-on-surface mb-2 group-hover:text-tertiary transition-colors">Block IP (Tor Node)</p>
+<p class="text-[11px] text-on-surface-variant mb-3">Add 185.220.101.44 to global edge firewall blocklist.</p>
+<button class="btn-kinetic w-full py-2 bg-surface-container-highest text-tertiary border border-tertiary/30 font-label-caps text-label-caps rounded hover:bg-tertiary hover:text-on-tertiary transition-all uppercase flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm group-hover:scale-125 transition-transform">block</span>
+                    Approve Action
+                </button>
+<p class="mt-2 text-center text-[10px] text-tertiary/80 uppercase font-bold tracking-widest">Pending Human Approval</p>
+</div>
+</div>
+<!-- Context Tabs -->
+<div class="space-y-stack-sm pt-gutter">
+<div class="flex items-center gap-stack-sm text-tertiary font-bold border-l-2 border-tertiary pl-2 py-1 bg-tertiary/10 transition-all cursor-pointer">
+<span class="material-symbols-outlined text-sm">warning</span>
+<span class="font-body-sm text-body-sm uppercase tracking-widest">Severity</span>
+</div>
+<div class="flex items-center gap-stack-sm text-on-surface-variant p-md hover:bg-surface-variant hover:text-primary cursor-pointer transition-all active:scale-95">
+<span class="material-symbols-outlined text-sm">verified_user</span>
+<span class="font-body-sm text-body-sm uppercase tracking-widest">Confidence</span>
+</div>
+<div class="flex items-center gap-stack-sm text-on-surface-variant p-md hover:bg-surface-variant hover:text-primary cursor-pointer transition-all active:scale-95">
+<span class="material-symbols-outlined text-sm">fingerprint</span>
+<span class="font-body-sm text-body-sm uppercase tracking-widest">Entities</span>
+</div>
+<div class="flex items-center gap-stack-sm text-on-surface-variant p-md hover:bg-surface-variant hover:text-primary cursor-pointer transition-all active:scale-95">
+<span class="material-symbols-outlined text-sm">history</span>
+<span class="font-body-sm text-body-sm uppercase tracking-widest">Timeline</span>
+</div>
+</div>
+</div>
+</aside>
+<script>
+    // Micro-interaction for radial hover effect on cards
+    document.querySelectorAll('.radial-hover').forEach(card => {
+        card.addEventListener('mousemove', e => {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            card.style.setProperty('--x', `${x}px`);
+            card.style.setProperty('--y', `${y}px`);
+        });
+    });
+
+    // Toggle Right Panel for smaller screens
+    function toggleDrawer() {
+        const drawer = document.querySelector('aside');
+        drawer.classList.toggle('hidden');
+        drawer.classList.toggle('lg:flex');
+    }
+</script>
+</body></html>
