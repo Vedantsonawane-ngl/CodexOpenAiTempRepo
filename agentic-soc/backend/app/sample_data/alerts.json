@@ -1,0 +1,38 @@
+[
+  {
+    "alert_id": "ALT-1001",
+    "title": "Possible Account Compromise",
+    "severity": "High",
+    "affected_user": "riya@acme.com",
+    "status": "New",
+    "detected_time": "2026-06-14T09:15:22Z",
+    "scenario_file": "credential_compromise.json"
+  },
+  {
+    "alert_id": "ALT-1002",
+    "title": "Possible Phishing Attempt",
+    "severity": "Medium",
+    "affected_user": "arjun@acme.com",
+    "status": "New",
+    "detected_time": "2026-06-14T10:18:09Z",
+    "scenario_file": "phishing.json"
+  },
+  {
+    "alert_id": "ALT-1003",
+    "title": "Possible Malware Beaconing",
+    "severity": "High",
+    "affected_user": "devika@acme.com",
+    "status": "New",
+    "detected_time": "2026-06-14T11:09:18Z",
+    "scenario_file": "malware.json"
+  },
+  {
+    "alert_id": "ALT-1004",
+    "title": "Possible Insider Data Access",
+    "severity": "High",
+    "affected_user": "meera@acme.com",
+    "status": "New",
+    "detected_time": "2026-06-14T22:41:03Z",
+    "scenario_file": "insider.json"
+  }
+]

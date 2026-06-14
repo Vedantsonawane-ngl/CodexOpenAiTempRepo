@@ -1,0 +1,206 @@
+{
+  "scenario_id": "phishing",
+  "name": "Phishing",
+  "description": "A user receives a suspicious email, clicks a phishing link, submits credentials, and triggers an unusual login attempt.",
+  "alert": {
+    "alert_id": "ALT-1002",
+    "title": "Possible Phishing Attempt",
+    "severity": "Medium",
+    "affected_user": "arjun@acme.com",
+    "status": "New",
+    "detected_time": "2026-06-14T10:18:09Z"
+  },
+  "logs": [
+    {
+      "id": "LOG-PH-001",
+      "timestamp": "2026-06-14T10:12:11Z",
+      "display_time": "10:12:11",
+      "source": "email_gateway",
+      "event": "email_received",
+      "user": "arjun@acme.com",
+      "ip": "203.0.113.91",
+      "country": "US",
+      "host": "",
+      "domain": "payroll-verification.co",
+      "file": "",
+      "sender": "benefits@payroll-verification.co",
+      "subject": "Payroll document requires review",
+      "raw": "10:12:11 Email received user=arjun@acme.com sender=benefits@payroll-verification.co domain=payroll-verification.co subject=\"Payroll document requires review\""
+    },
+    {
+      "id": "LOG-PH-002",
+      "timestamp": "2026-06-14T10:14:27Z",
+      "display_time": "10:14:27",
+      "source": "proxy",
+      "event": "url_click",
+      "user": "arjun@acme.com",
+      "ip": "10.0.9.22",
+      "country": "IN",
+      "host": "LAPTOP-ARJUN",
+      "domain": "payroll-verification.co",
+      "file": "",
+      "raw": "10:14:27 URL click user=arjun@acme.com host=LAPTOP-ARJUN domain=payroll-verification.co"
+    },
+    {
+      "id": "LOG-PH-003",
+      "timestamp": "2026-06-14T10:15:43Z",
+      "display_time": "10:15:43",
+      "source": "identity",
+      "event": "credential_submission",
+      "user": "arjun@acme.com",
+      "ip": "10.0.9.22",
+      "country": "IN",
+      "host": "LAPTOP-ARJUN",
+      "domain": "payroll-verification.co",
+      "file": "",
+      "raw": "10:15:43 Credential submission user=arjun@acme.com host=LAPTOP-ARJUN domain=payroll-verification.co"
+    },
+    {
+      "id": "LOG-PH-004",
+      "timestamp": "2026-06-14T10:18:09Z",
+      "display_time": "10:18:09",
+      "source": "vpn",
+      "event": "vpn_failed",
+      "user": "arjun@acme.com",
+      "ip": "198.51.100.73",
+      "country": "RU",
+      "host": "",
+      "domain": "",
+      "file": "",
+      "raw": "10:18:09 VPN failed login user=arjun@acme.com ip=198.51.100.73 country=RU"
+    },
+    {
+      "id": "LOG-PH-005",
+      "timestamp": "2026-06-14T10:21:31Z",
+      "display_time": "10:21:31",
+      "source": "email_gateway",
+      "event": "message_quarantined",
+      "user": "arjun@acme.com",
+      "ip": "203.0.113.91",
+      "country": "US",
+      "host": "",
+      "domain": "payroll-verification.co",
+      "file": "",
+      "raw": "10:21:31 Message quarantined user=arjun@acme.com domain=payroll-verification.co reason=phishing"
+    }
+  ],
+  "expected_investigation": {
+    "attack_type": "Phishing",
+    "severity": "Medium",
+    "confidence": 76,
+    "summary": "User received and clicked a suspicious payroll-themed email, then submitted credentials before a foreign VPN login attempt was observed.",
+    "entities": {
+      "users": [
+        "arjun@acme.com"
+      ],
+      "ip_addresses": [
+        "203.0.113.91",
+        "10.0.9.22",
+        "198.51.100.73"
+      ],
+      "hostnames": [
+        "LAPTOP-ARJUN"
+      ],
+      "domains": [
+        "payroll-verification.co"
+      ],
+      "files": [],
+      "countries": [
+        "US",
+        "IN",
+        "RU"
+      ]
+    },
+    "timeline": [
+      {
+        "time": "10:12",
+        "title": "Suspicious Email Received",
+        "event": "email_received",
+        "source_log_ids": [
+          "LOG-PH-001"
+        ]
+      },
+      {
+        "time": "10:14",
+        "title": "Phishing URL Clicked",
+        "event": "url_click",
+        "source_log_ids": [
+          "LOG-PH-002"
+        ]
+      },
+      {
+        "time": "10:15",
+        "title": "Credential Submission",
+        "event": "credential_submission",
+        "source_log_ids": [
+          "LOG-PH-003"
+        ]
+      },
+      {
+        "time": "10:18",
+        "title": "Foreign VPN Failure",
+        "event": "vpn_failed",
+        "source_log_ids": [
+          "LOG-PH-004"
+        ]
+      }
+    ],
+    "findings": [
+      {
+        "finding": "Phishing Link Clicked",
+        "evidence": "User clicked payroll-verification.co",
+        "severity": "Medium",
+        "source_log_ids": [
+          "LOG-PH-002"
+        ]
+      },
+      {
+        "finding": "Credential Exposure",
+        "evidence": "Credential submission was recorded after URL click",
+        "severity": "High",
+        "source_log_ids": [
+          "LOG-PH-003"
+        ]
+      },
+      {
+        "finding": "Suspicious VPN Attempt",
+        "evidence": "VPN failed login from RU",
+        "severity": "Medium",
+        "source_log_ids": [
+          "LOG-PH-004"
+        ]
+      }
+    ],
+    "recommendations": [
+      "Reset Password",
+      "Revoke Sessions",
+      "Block Domain",
+      "Quarantine Email"
+    ],
+    "approval": {
+      "status": "Pending Human Approval",
+      "actions": [
+        "Reset Password",
+        "Revoke Sessions",
+        "Block Domain"
+      ]
+    },
+    "mitre": [
+      {
+        "technique_id": "T1566",
+        "technique": "Phishing",
+        "source_log_ids": [
+          "LOG-PH-001",
+          "LOG-PH-002"
+        ]
+      },
+      {
+        "technique_id": "T1078",
+        "technique": "Valid Accounts",
+        "source_log_ids": [
+          "LOG-PH-003"
+        ]
+      }
+    ]
+  }
+}
