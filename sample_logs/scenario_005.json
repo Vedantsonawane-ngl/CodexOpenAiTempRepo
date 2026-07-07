@@ -1,0 +1,424 @@
+{
+  "scenario_id": "ransomware",
+  "name": "Possible Ransomware Activity",
+  "description": "Enterprise simulation of Possible Ransomware Activity.",
+  "alert": {
+    "alert_id": "ALT-1005",
+    "title": "Possible Ransomware Activity",
+    "severity": "Critical",
+    "affected_user": "neha@acme.com",
+    "detected_time": "2026-07-06T10:15:00Z",
+    "status": "New"
+  },
+  "logs": [
+    {
+      "id": "LOG-005-001",
+      "display_time": "10:01",
+      "timestamp": "2026-07-06T10:01:00Z",
+      "source": "windows_security",
+      "event": "normal_activity",
+      "user": "neha@acme.com",
+      "ip": "10.0.0.20",
+      "country": "IN",
+      "host": "HOST-05",
+      "domain": "",
+      "file": ""
+    },
+    {
+      "id": "LOG-005-002",
+      "display_time": "10:02",
+      "timestamp": "2026-07-06T10:02:00Z",
+      "source": "windows_security",
+      "event": "normal_activity",
+      "user": "neha@acme.com",
+      "ip": "10.0.0.20",
+      "country": "IN",
+      "host": "HOST-05",
+      "domain": "",
+      "file": ""
+    },
+    {
+      "id": "LOG-005-003",
+      "display_time": "10:03",
+      "timestamp": "2026-07-06T10:03:00Z",
+      "source": "windows_security",
+      "event": "normal_activity",
+      "user": "neha@acme.com",
+      "ip": "10.0.0.20",
+      "country": "IN",
+      "host": "HOST-05",
+      "domain": "",
+      "file": ""
+    },
+    {
+      "id": "LOG-005-004",
+      "display_time": "10:04",
+      "timestamp": "2026-07-06T10:04:00Z",
+      "source": "windows_security",
+      "event": "normal_activity",
+      "user": "neha@acme.com",
+      "ip": "10.0.0.20",
+      "country": "IN",
+      "host": "HOST-05",
+      "domain": "",
+      "file": ""
+    },
+    {
+      "id": "LOG-005-005",
+      "display_time": "10:05",
+      "timestamp": "2026-07-06T10:05:00Z",
+      "source": "windows_security",
+      "event": "file_encryption",
+      "user": "neha@acme.com",
+      "ip": "203.0.113.25",
+      "country": "RU",
+      "host": "HOST-05",
+      "domain": "",
+      "file": ""
+    },
+    {
+      "id": "LOG-005-006",
+      "display_time": "10:06",
+      "timestamp": "2026-07-06T10:06:00Z",
+      "source": "windows_security",
+      "event": "normal_activity",
+      "user": "neha@acme.com",
+      "ip": "203.0.113.25",
+      "country": "RU",
+      "host": "HOST-05",
+      "domain": "",
+      "file": ""
+    },
+    {
+      "id": "LOG-005-007",
+      "display_time": "10:07",
+      "timestamp": "2026-07-06T10:07:00Z",
+      "source": "windows_security",
+      "event": "normal_activity",
+      "user": "neha@acme.com",
+      "ip": "203.0.113.25",
+      "country": "RU",
+      "host": "HOST-05",
+      "domain": "",
+      "file": ""
+    },
+    {
+      "id": "LOG-005-008",
+      "display_time": "10:08",
+      "timestamp": "2026-07-06T10:08:00Z",
+      "source": "sysmon",
+      "event": "normal_activity",
+      "user": "neha@acme.com",
+      "ip": "203.0.113.25",
+      "country": "RU",
+      "host": "HOST-05",
+      "domain": "",
+      "file": ""
+    },
+    {
+      "id": "LOG-005-009",
+      "display_time": "10:09",
+      "timestamp": "2026-07-06T10:09:00Z",
+      "source": "sysmon",
+      "event": "normal_activity",
+      "user": "neha@acme.com",
+      "ip": "203.0.113.25",
+      "country": "RU",
+      "host": "HOST-05",
+      "domain": "",
+      "file": ""
+    },
+    {
+      "id": "LOG-005-010",
+      "display_time": "10:10",
+      "timestamp": "2026-07-06T10:10:00Z",
+      "source": "sysmon",
+      "event": "file_encryption",
+      "user": "neha@acme.com",
+      "ip": "203.0.113.25",
+      "country": "RU",
+      "host": "HOST-05",
+      "domain": "c2.evilcorp.net",
+      "file": ""
+    },
+    {
+      "id": "LOG-005-011",
+      "display_time": "10:11",
+      "timestamp": "2026-07-06T10:11:00Z",
+      "source": "sysmon",
+      "event": "normal_activity",
+      "user": "neha@acme.com",
+      "ip": "203.0.113.25",
+      "country": "RU",
+      "host": "HOST-05",
+      "domain": "c2.evilcorp.net",
+      "file": ""
+    },
+    {
+      "id": "LOG-005-012",
+      "display_time": "10:12",
+      "timestamp": "2026-07-06T10:12:00Z",
+      "source": "sysmon",
+      "event": "normal_activity",
+      "user": "neha@acme.com",
+      "ip": "203.0.113.25",
+      "country": "RU",
+      "host": "HOST-05",
+      "domain": "c2.evilcorp.net",
+      "file": ""
+    },
+    {
+      "id": "LOG-005-013",
+      "display_time": "10:13",
+      "timestamp": "2026-07-06T10:13:00Z",
+      "source": "sysmon",
+      "event": "normal_activity",
+      "user": "neha@acme.com",
+      "ip": "203.0.113.25",
+      "country": "RU",
+      "host": "HOST-05",
+      "domain": "c2.evilcorp.net",
+      "file": ""
+    },
+    {
+      "id": "LOG-005-014",
+      "display_time": "10:14",
+      "timestamp": "2026-07-06T10:14:00Z",
+      "source": "sysmon",
+      "event": "normal_activity",
+      "user": "neha@acme.com",
+      "ip": "203.0.113.25",
+      "country": "RU",
+      "host": "HOST-05",
+      "domain": "c2.evilcorp.net",
+      "file": ""
+    },
+    {
+      "id": "LOG-005-015",
+      "display_time": "10:15",
+      "timestamp": "2026-07-06T10:15:00Z",
+      "source": "microsoft_defender",
+      "event": "normal_activity",
+      "user": "neha@acme.com",
+      "ip": "203.0.113.25",
+      "country": "RU",
+      "host": "HOST-05",
+      "domain": "c2.evilcorp.net",
+      "file": ""
+    },
+    {
+      "id": "LOG-005-016",
+      "display_time": "10:16",
+      "timestamp": "2026-07-06T10:16:00Z",
+      "source": "microsoft_defender",
+      "event": "normal_activity",
+      "user": "neha@acme.com",
+      "ip": "203.0.113.25",
+      "country": "RU",
+      "host": "HOST-05",
+      "domain": "c2.evilcorp.net",
+      "file": ""
+    },
+    {
+      "id": "LOG-005-017",
+      "display_time": "10:17",
+      "timestamp": "2026-07-06T10:17:00Z",
+      "source": "microsoft_defender",
+      "event": "normal_activity",
+      "user": "neha@acme.com",
+      "ip": "203.0.113.25",
+      "country": "RU",
+      "host": "HOST-05",
+      "domain": "c2.evilcorp.net",
+      "file": ""
+    },
+    {
+      "id": "LOG-005-018",
+      "display_time": "10:18",
+      "timestamp": "2026-07-06T10:18:00Z",
+      "source": "microsoft_defender",
+      "event": "file_encryption",
+      "user": "neha@acme.com",
+      "ip": "203.0.113.25",
+      "country": "RU",
+      "host": "HOST-05",
+      "domain": "c2.evilcorp.net",
+      "file": "payload.exe"
+    },
+    {
+      "id": "LOG-005-019",
+      "display_time": "10:19",
+      "timestamp": "2026-07-06T10:19:00Z",
+      "source": "microsoft_defender",
+      "event": "normal_activity",
+      "user": "neha@acme.com",
+      "ip": "203.0.113.25",
+      "country": "RU",
+      "host": "HOST-05",
+      "domain": "c2.evilcorp.net",
+      "file": "payload.exe"
+    },
+    {
+      "id": "LOG-005-020",
+      "display_time": "10:20",
+      "timestamp": "2026-07-06T10:20:00Z",
+      "source": "microsoft_defender",
+      "event": "normal_activity",
+      "user": "neha@acme.com",
+      "ip": "203.0.113.25",
+      "country": "RU",
+      "host": "HOST-05",
+      "domain": "c2.evilcorp.net",
+      "file": "payload.exe"
+    },
+    {
+      "id": "LOG-005-021",
+      "display_time": "10:21",
+      "timestamp": "2026-07-06T10:21:00Z",
+      "source": "microsoft_defender",
+      "event": "normal_activity",
+      "user": "neha@acme.com",
+      "ip": "203.0.113.25",
+      "country": "RU",
+      "host": "HOST-05",
+      "domain": "c2.evilcorp.net",
+      "file": "payload.exe"
+    },
+    {
+      "id": "LOG-005-022",
+      "display_time": "10:22",
+      "timestamp": "2026-07-06T10:22:00Z",
+      "source": "microsoft_defender",
+      "event": "normal_activity",
+      "user": "neha@acme.com",
+      "ip": "203.0.113.25",
+      "country": "RU",
+      "host": "HOST-05",
+      "domain": "c2.evilcorp.net",
+      "file": "payload.exe"
+    },
+    {
+      "id": "LOG-005-023",
+      "display_time": "10:23",
+      "timestamp": "2026-07-06T10:23:00Z",
+      "source": "microsoft_defender",
+      "event": "normal_activity",
+      "user": "neha@acme.com",
+      "ip": "203.0.113.25",
+      "country": "RU",
+      "host": "HOST-05",
+      "domain": "c2.evilcorp.net",
+      "file": "payload.exe"
+    },
+    {
+      "id": "LOG-005-024",
+      "display_time": "10:24",
+      "timestamp": "2026-07-06T10:24:00Z",
+      "source": "microsoft_defender",
+      "event": "normal_activity",
+      "user": "neha@acme.com",
+      "ip": "203.0.113.25",
+      "country": "RU",
+      "host": "HOST-05",
+      "domain": "c2.evilcorp.net",
+      "file": "payload.exe"
+    },
+    {
+      "id": "LOG-005-025",
+      "display_time": "10:25",
+      "timestamp": "2026-07-06T10:25:00Z",
+      "source": "microsoft_defender",
+      "event": "normal_activity",
+      "user": "neha@acme.com",
+      "ip": "203.0.113.25",
+      "country": "RU",
+      "host": "HOST-05",
+      "domain": "c2.evilcorp.net",
+      "file": "payload.exe"
+    }
+  ],
+  "expected_investigation": {
+    "attack_type": "Possible Ransomware Activity",
+    "severity": "Critical",
+    "confidence": 95,
+    "summary": "AI-correlated evidence indicates possible ransomware activity impacting neha@acme.com.",
+    "timeline": [
+      {
+        "time": "10:05",
+        "title": "Initial compromise",
+        "source_log_ids": [
+          "LOG-005-005"
+        ]
+      },
+      {
+        "time": "10:10",
+        "title": "Attacker activity escalates",
+        "source_log_ids": [
+          "LOG-005-010"
+        ]
+      },
+      {
+        "time": "10:18",
+        "title": "Security alert generated",
+        "source_log_ids": [
+          "LOG-005-018"
+        ]
+      }
+    ],
+    "findings": [
+      {
+        "finding": "Correlated malicious activity detected",
+        "severity": "Critical",
+        "evidence": "Multiple endpoint, identity and network events indicate attacker behavior.",
+        "source_log_ids": [
+          "LOG-005-005",
+          "LOG-005-010",
+          "LOG-005-018"
+        ]
+      }
+    ],
+    "mitre": [
+      {
+        "technique_id": "T1078",
+        "technique": "Valid Accounts",
+        "source_log_ids": [
+          "LOG-005-005"
+        ]
+      },
+      {
+        "technique_id": "T1059",
+        "technique": "Command and Scripting Interpreter",
+        "source_log_ids": [
+          "LOG-005-018"
+        ]
+      }
+    ],
+    "recommendations": [
+      "Isolate affected endpoint.",
+      "Reset credentials.",
+      "Block malicious IPs/domains.",
+      "Perform enterprise-wide threat hunting."
+    ],
+    "entities": {
+      "users": [
+        "neha@acme.com"
+      ],
+      "ip_addresses": [
+        "203.0.113.25"
+      ],
+      "hostnames": [
+        "HOST-05"
+      ],
+      "domains": [
+        "c2.evilcorp.net"
+      ],
+      "files": [
+        "payload.exe"
+      ],
+      "countries": [
+        "IN",
+        "RU"
+      ]
+    }
+  }
+}
