@@ -1,29 +1,76 @@
 from __future__ import annotations
 
 import json
+import logging
+import os
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, HTTPException
+from dotenv import load_dotenv
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from fastapi.responses import JSONResponse
+from groq import AsyncGroq
+from pydantic import BaseModel, field_validator
 
+load_dotenv()
 
+# ── Logging setup ─────────────────────────────────────────────────────────────
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+logger = logging.getLogger("intellisoc")
+
+# ── Paths ─────────────────────────────────────────────────────────────────────
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SAMPLE_LOGS_DIR = REPO_ROOT / "sample_logs"
 ALERTS_FILE = REPO_ROOT / "backend" / "app" / "sample_data" / "alerts.json"
 
+# ── Groq client ───────────────────────────────────────────────────────────────
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
+GROQ_MODEL = "llama-3.3-70b-versatile"
 
+groq_client: AsyncGroq | None = None
+if GROQ_API_KEY:
+    groq_client = AsyncGroq(api_key=GROQ_API_KEY)
+    logger.info("Groq AI client initialized with model: %s", GROQ_MODEL)
+else:
+    logger.warning("GROQ_API_KEY not set — AI investigation will use static fallback.")
+
+
+# ── Pydantic models ───────────────────────────────────────────────────────────
 class LogUpload(BaseModel):
     logs: list[dict[str, Any]] = []
+
+    @field_validator("logs")
+    @classmethod
+    def logs_must_not_exceed_limit(cls, v: list) -> list:
+        if len(v) > 10_000:
+            raise ValueError("Maximum 10,000 log entries per upload.")
+        return v
 
 
 class ApprovalDecision(BaseModel):
     comment: str | None = None
 
+    @field_validator("comment")
+    @classmethod
+    def sanitize_comment(cls, v: str | None) -> str | None:
+        if v and len(v) > 1000:
+            raise ValueError("Comment must be under 1000 characters.")
+        return v
 
-app = FastAPI(title="intelliSOC Backend", version="1.0.0")
+
+# ── App setup ─────────────────────────────────────────────────────────────────
+app = FastAPI(
+    title="IntelliSOC Backend",
+    version="2.0.0",
+    description="AI-powered SOC log triage backend using Groq LLaMA 3.3 70B.",
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -33,40 +80,88 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+# ── Request logging middleware ────────────────────────────────────────────────
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    start = time.perf_counter()
+    response = await call_next(request)
+    duration_ms = (time.perf_counter() - start) * 1000
+    logger.info(
+        "%s %s → %d (%.1fms)",
+        request.method,
+        request.url.path,
+        response.status_code,
+        duration_ms,
+    )
+    return response
+
+
+# ── Global exception handler ──────────────────────────────────────────────────
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logger.error("Unhandled error on %s %s: %s", request.method, request.url.path, exc)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal server error. Please try again later."},
+    )
+
+
+# ── In-memory state ───────────────────────────────────────────────────────────
 approval_state: dict[str, dict[str, Any]] = {}
 
 
-def read_json(path: Path) -> Any:
-    with path.open("r", encoding="utf-8") as file:
-        return json.load(file)
+# ── File I/O (async) ──────────────────────────────────────────────────────────
+async def read_json_async(path: Path) -> Any:
+    """Read a JSON file asynchronously using a thread pool to avoid blocking."""
+    import asyncio
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(None, _read_json_sync, path)
 
 
-def load_scenarios() -> list[dict[str, Any]]:
+def _read_json_sync(path: Path) -> Any:
+    with path.open("r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+async def load_scenarios_async() -> list[dict[str, Any]]:
+    """Load all scenario JSON files from sample_logs directory asynchronously."""
+    import asyncio
+    if not SAMPLE_LOGS_DIR.exists():
+        logger.warning("sample_logs directory not found at: %s", SAMPLE_LOGS_DIR)
+        return []
+    paths = sorted(SAMPLE_LOGS_DIR.glob("*.json"))
+    if not paths:
+        logger.warning("No JSON scenario files found in sample_logs/")
+        return []
+    tasks = [read_json_async(p) for p in paths]
+    results = await asyncio.gather(*tasks, return_exceptions=True)
     scenarios = []
-    for path in sorted(SAMPLE_LOGS_DIR.glob("*.json")):
-        scenario = read_json(path)
-        scenario["_file_name"] = path.name
-        scenarios.append(scenario)
+    for path, result in zip(paths, results):
+        if isinstance(result, Exception):
+            logger.error("Failed to load scenario %s: %s", path.name, result)
+            continue
+        result["_file_name"] = path.name
+        scenarios.append(result)
     return scenarios
 
 
-def scenario_by_alert_id(alert_id: str) -> dict[str, Any]:
-    for scenario in load_scenarios():
+async def get_scenario_by_alert_id(alert_id: str) -> dict[str, Any]:
+    for scenario in await load_scenarios_async():
         if scenario["alert"]["alert_id"] == alert_id:
             return scenario
-    raise HTTPException(status_code=404, detail=f"Alert {alert_id} not found")
+    raise HTTPException(status_code=404, detail=f"Alert '{alert_id}' not found.")
 
 
-def scenario_by_investigation_id(investigation_id: str) -> dict[str, Any]:
-    alert_id = investigation_id.replace("INV-", "ALT-", 1)
-    return scenario_by_alert_id(alert_id)
+async def get_scenario_by_investigation_id(investigation_id: str) -> dict[str, Any]:
+    return await get_scenario_by_alert_id(investigation_id.replace("INV-", "ALT-", 1))
 
 
-def scenario_by_report_id(report_id: str) -> dict[str, Any]:
-    alert_id = report_id.replace("RPT-", "ALT-", 1)
-    return scenario_by_alert_id(alert_id)
+async def get_scenario_by_report_id(report_id: str) -> dict[str, Any]:
+    return await get_scenario_by_alert_id(report_id.replace("RPT-", "ALT-", 1))
 
 
+# ── Data transformation helpers ───────────────────────────────────────────────
 def to_display_time(timestamp: str) -> str:
     try:
         parsed = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
@@ -124,23 +219,21 @@ def timeline_to_client(scenario: dict[str, Any]) -> list[dict[str, Any]]:
         first_log = logs_by_id.get(source_log_ids[0], {}) if source_log_ids else {}
         severity = scenario["expected_investigation"]["severity"]
         tone = "critical" if severity == "Critical" else "danger" if severity == "High" else "warning"
-        timeline.append(
-            {
-                "id": f"TL-{index:03d}",
-                "time": first_log.get("display_time", event["time"]),
-                "title": event["title"],
-                "tone": tone,
-                "user": first_log.get("user", ""),
-                "ip": first_log.get("ip", ""),
-                "country": first_log.get("country", ""),
-                "host": first_log.get("host", ""),
-                "domain": first_log.get("domain", ""),
-                "file": first_log.get("file", ""),
-                "source": title_case_source(str(first_log.get("source", ""))),
-                "rawLogId": source_log_ids[0] if source_log_ids else "",
-                "sourceLogIds": source_log_ids,
-            }
-        )
+        timeline.append({
+            "id": f"TL-{index:03d}",
+            "time": first_log.get("display_time", event["time"]),
+            "title": event["title"],
+            "tone": tone,
+            "user": first_log.get("user", ""),
+            "ip": first_log.get("ip", ""),
+            "country": first_log.get("country", ""),
+            "host": first_log.get("host", ""),
+            "domain": first_log.get("domain", ""),
+            "file": first_log.get("file", ""),
+            "source": title_case_source(str(first_log.get("source", ""))),
+            "rawLogId": source_log_ids[0] if source_log_ids else "",
+            "sourceLogIds": source_log_ids,
+        })
     return timeline
 
 
@@ -154,14 +247,14 @@ def findings_to_client(scenario: dict[str, Any]) -> list[dict[str, Any]]:
     ]
     return [
         {
-            "finding": finding["finding"],
-            "severity": finding["severity"],
-            "evidence": finding["evidence"],
+            "finding": f["finding"],
+            "severity": f["severity"],
+            "evidence": f["evidence"],
             "relatedEntities": related_entities[:4],
-            "sourceLogIds": finding.get("source_log_ids", []),
+            "sourceLogIds": f.get("source_log_ids", []),
             "status": "Supported by Evidence",
         }
-        for finding in scenario["expected_investigation"]["findings"]
+        for f in scenario["expected_investigation"]["findings"]
     ]
 
 
@@ -187,7 +280,10 @@ def investigation_to_client(scenario: dict[str, Any]) -> dict[str, Any]:
     logs = scenario["logs"]
     failed_logins = len([log for log in logs if log.get("event") == "vpn_failed"])
     countries = expected["entities"].get("countries", [])
-    suspicious_location = next((country for country in countries if country not in {"IN", "US"}), countries[0] if countries else "")
+    suspicious_location = next(
+        (c for c in countries if c not in {"IN", "US"}),
+        countries[0] if countries else "",
+    )
     return {
         "id": alert["investigationId"],
         "alertId": alert["id"],
@@ -221,21 +317,19 @@ def approvals_for_investigation(investigation: dict[str, Any]) -> list[dict[str,
             if "IP" in action or "Domain" not in action
             else investigation["entities"].get("Domains", [""])[0]
         )
-        approvals.append(
-            {
-                "id": action_id,
-                "action": action,
-                "investigationId": investigation["id"],
-                "alertId": investigation["alertId"],
-                "target": target or investigation["user"],
-                "reason": "Containment recommendation generated from evidence-backed investigation.",
-                "evidence": findings[min(index - 1, len(findings) - 1)]["evidence"],
-                "riskImpact": "May interrupt active access or block related infrastructure.",
-                "status": saved_state.get("status", "Pending Human Approval"),
-                "requestedTime": "Now",
-                "comment": saved_state.get("comment", ""),
-            }
-        )
+        approvals.append({
+            "id": action_id,
+            "action": action,
+            "investigationId": investigation["id"],
+            "alertId": investigation["alertId"],
+            "target": target or investigation["user"],
+            "reason": "Containment recommendation generated from evidence-backed investigation.",
+            "evidence": findings[min(index - 1, len(findings) - 1)]["evidence"],
+            "riskImpact": "May interrupt active access or block related infrastructure.",
+            "status": saved_state.get("status", "Pending Human Approval"),
+            "requestedTime": "Now",
+            "comment": saved_state.get("comment", ""),
+        })
     return approvals
 
 
@@ -258,89 +352,235 @@ def report_to_client(scenario: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+# ── AI Investigation ──────────────────────────────────────────────────────────
+AI_SYSTEM_PROMPT = """You are IntelliSOC, an expert SOC (Security Operations Center) analyst AI.
+You will be given a security alert and associated log entries.
+
+Analyze the logs and produce a structured JSON investigation report. Be precise, evidence-based, and decisive.
+
+Respond ONLY with a valid JSON object with this structure:
+{
+  "attack_type": "e.g. Brute Force, Credential Stuffing, Lateral Movement, Data Exfiltration, etc.",
+  "severity": "Critical | High | Medium | Low",
+  "confidence": "High | Medium | Low",
+  "summary": "3-4 sentence plain-language summary of what happened, who was affected, and the likely attacker intent.",
+  "key_findings": [
+    {
+      "finding": "Short title of the finding",
+      "severity": "Critical | High | Medium | Low",
+      "evidence": "Specific log-based evidence supporting this finding."
+    }
+  ],
+  "recommendations": [
+    "Specific actionable remediation step 1",
+    "Specific actionable remediation step 2"
+  ],
+  "mitre_techniques": [
+    {
+      "technique_id": "e.g. T1110",
+      "technique": "e.g. Brute Force",
+      "rationale": "Why this technique applies based on the logs."
+    }
+  ]
+}
+
+Do not include markdown, code fences, or any text outside the JSON object."""
+
+
+async def run_ai_investigation(scenario: dict[str, Any]) -> dict[str, Any]:
+    """
+    Call Groq LLaMA 3.3 70B to generate a real AI investigation from log data.
+    Falls back to static expected_investigation if Groq is unavailable.
+    """
+    if not groq_client:
+        logger.warning("Groq client not available — returning static investigation.")
+        return investigation_to_client(scenario)
+
+    alert = scenario["alert"]
+    logs_preview = scenario["logs"][:20]  # cap to avoid token overflow
+
+    user_prompt = f"""Security Alert:
+- Title: {alert['title']}
+- Affected User: {alert['affected_user']}
+- Detected At: {alert['detected_time']}
+- Status: {alert['status']}
+- Description: {scenario['description']}
+
+Log Entries ({len(scenario['logs'])} total, showing first {len(logs_preview)}):
+{json.dumps(logs_preview, indent=2)}
+
+Analyze these logs and produce a full investigation report as a JSON object."""
+
+    try:
+        logger.info("Running AI investigation for alert: %s", alert["alert_id"])
+        start = time.perf_counter()
+
+        response = await groq_client.chat.completions.create(
+            model=GROQ_MODEL,
+            messages=[
+                {"role": "system", "content": AI_SYSTEM_PROMPT},
+                {"role": "user", "content": user_prompt},
+            ],
+            temperature=0.2,      # low temp = more deterministic, factual output
+            max_tokens=2048,
+        )
+
+        duration_ms = (time.perf_counter() - start) * 1000
+        logger.info("AI investigation completed in %.1fms", duration_ms)
+
+        raw = response.choices[0].message.content.strip()
+        raw = raw.replace("```json", "").replace("```", "").strip()
+        ai_result = json.loads(raw)
+
+        # Merge AI output with base investigation structure
+        base = investigation_to_client(scenario)
+        base["attackType"] = ai_result.get("attack_type", base["attackType"])
+        base["severity"] = ai_result.get("severity", base["severity"])
+        base["confidence"] = ai_result.get("confidence", base["confidence"])
+        base["summary"] = ai_result.get("summary", base["summary"])
+        base["reasoning"] = ai_result.get("summary", base["reasoning"])
+        base["recommendations"] = ai_result.get("recommendations", base["recommendations"])
+        base["aiGenerated"] = True
+        base["model"] = GROQ_MODEL
+
+        # Map AI findings into client format
+        if ai_result.get("key_findings"):
+            base["findings"] = [
+                {
+                    "finding": f["finding"],
+                    "severity": f["severity"],
+                    "evidence": f["evidence"],
+                    "relatedEntities": [],
+                    "sourceLogIds": [],
+                    "status": "AI Generated",
+                }
+                for f in ai_result["key_findings"]
+            ]
+
+        # Map MITRE techniques
+        if ai_result.get("mitre_techniques"):
+            base["mitre"] = [
+                {
+                    "techniqueId": t["technique_id"],
+                    "technique": t["technique"],
+                    "relatedFinding": t.get("rationale", ""),
+                    "confidence": ai_result.get("confidence", "Medium"),
+                    "sourceLogIds": [],
+                }
+                for t in ai_result["mitre_techniques"]
+            ]
+
+        return base
+
+    except json.JSONDecodeError as e:
+        logger.error("Failed to parse AI response as JSON: %s", e)
+        return investigation_to_client(scenario)
+    except Exception as e:
+        logger.error("Groq API error during investigation: %s", e)
+        return investigation_to_client(scenario)
+
+
+# ── Routes ────────────────────────────────────────────────────────────────────
 @app.get("/health")
-def health() -> dict[str, str]:
-    return {"status": "ok"}
+async def health() -> dict[str, Any]:
+    return {
+        "status": "ok",
+        "version": "2.0.0",
+        "ai_enabled": groq_client is not None,
+        "model": GROQ_MODEL if groq_client else None,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
 
 
 @app.get("/scenarios")
-def get_scenarios() -> list[dict[str, Any]]:
+async def get_scenarios() -> list[dict[str, Any]]:
     scenarios = []
-    for scenario in load_scenarios():
+    for scenario in await load_scenarios_async():
         alert = alert_to_client(scenario)
-        tags = sorted({title_case_source(str(log.get("source", ""))) for log in scenario["logs"] if log.get("source")})
+        tags = sorted({
+            title_case_source(str(log.get("source", "")))
+            for log in scenario["logs"] if log.get("source")
+        })
         severity = alert["severity"]
-        scenarios.append(
-            {
-                "id": scenario["scenario_id"],
-                "title": scenario["name"],
-                "description": scenario["description"],
-                "severity": f"{severity} Severity",
-                "tone": severity.lower(),
-                "tags": tags,
-                "alert": alert,
-                "events": len(scenario["logs"]),
-            }
-        )
+        scenarios.append({
+            "id": scenario["scenario_id"],
+            "title": scenario["name"],
+            "description": scenario["description"],
+            "severity": f"{severity} Severity",
+            "tone": severity.lower(),
+            "tags": tags,
+            "alert": alert,
+            "events": len(scenario["logs"]),
+        })
     return scenarios
 
 
 @app.get("/alerts")
-def get_alerts() -> list[dict[str, Any]]:
-    return [alert_to_client(scenario) for scenario in load_scenarios()]
+async def get_alerts() -> list[dict[str, Any]]:
+    return [alert_to_client(s) for s in await load_scenarios_async()]
 
 
 @app.get("/alerts/{alert_id}")
-def get_alert(alert_id: str) -> dict[str, Any]:
-    scenario = scenario_by_alert_id(alert_id)
+async def get_alert(alert_id: str) -> dict[str, Any]:
+    scenario = await get_scenario_by_alert_id(alert_id)
     alert = alert_to_client(scenario)
     investigation = investigation_to_client(scenario)
     return {**alert, "logs": investigation["logs"], "entities": investigation["entities"]}
 
 
 @app.post("/logs/upload")
-def upload_logs(payload: LogUpload) -> dict[str, Any]:
-    scenarios = load_scenarios()
-    detected_alerts = [alert_to_client(scenario) for scenario in scenarios[:1]]
-    processed = len(payload.logs) if payload.logs else sum(len(scenario["logs"]) for scenario in scenarios)
+async def upload_logs(payload: LogUpload) -> dict[str, Any]:
+    scenarios = await load_scenarios_async()
+    detected_alerts = [alert_to_client(s) for s in scenarios[:1]]
+    processed = len(payload.logs) if payload.logs else sum(len(s["logs"]) for s in scenarios)
+    logger.info("Log upload received: %d entries processed.", processed)
     return {"processed": processed, "detected_alerts": detected_alerts, "status": "accepted"}
 
 
 @app.post("/investigations/run/{alert_id}")
-def run_investigation(alert_id: str) -> dict[str, Any]:
-    return investigation_to_client(scenario_by_alert_id(alert_id))
+async def run_investigation(alert_id: str) -> dict[str, Any]:
+    """
+    Run a full AI-powered investigation on the given alert.
+    Uses Groq LLaMA 3.3 70B if API key is configured, otherwise falls back to static data.
+    """
+    scenario = await get_scenario_by_alert_id(alert_id)
+    return await run_ai_investigation(scenario)
 
 
 @app.get("/investigations/{investigation_id}")
-def get_investigation(investigation_id: str) -> dict[str, Any]:
-    return investigation_to_client(scenario_by_investigation_id(investigation_id))
+async def get_investigation(investigation_id: str) -> dict[str, Any]:
+    scenario = await get_scenario_by_investigation_id(investigation_id)
+    return investigation_to_client(scenario)
 
 
 @app.get("/approvals")
-def get_approvals() -> list[dict[str, Any]]:
+async def get_approvals() -> list[dict[str, Any]]:
     approvals: list[dict[str, Any]] = []
-    for scenario in load_scenarios():
+    for scenario in await load_scenarios_async():
         approvals.extend(approvals_for_investigation(investigation_to_client(scenario)))
     return approvals
 
 
 @app.post("/approvals/{action_id}/approve")
-def approve_action(action_id: str, payload: ApprovalDecision) -> dict[str, Any]:
+async def approve_action(action_id: str, payload: ApprovalDecision) -> dict[str, Any]:
     approval_state[action_id] = {"status": "Approved", "comment": payload.comment or ""}
+    logger.info("Action %s approved.", action_id)
     return {"id": action_id, **approval_state[action_id]}
 
 
 @app.post("/approvals/{action_id}/reject")
-def reject_action(action_id: str, payload: ApprovalDecision) -> dict[str, Any]:
+async def reject_action(action_id: str, payload: ApprovalDecision) -> dict[str, Any]:
     approval_state[action_id] = {"status": "Rejected", "comment": payload.comment or ""}
+    logger.info("Action %s rejected.", action_id)
     return {"id": action_id, **approval_state[action_id]}
 
 
 @app.get("/reports")
-def get_reports() -> list[dict[str, Any]]:
-    return [report_to_client(scenario) for scenario in load_scenarios()]
+async def get_reports() -> list[dict[str, Any]]:
+    return [report_to_client(s) for s in await load_scenarios_async()]
 
 
 @app.get("/reports/{report_id}")
-def get_report(report_id: str) -> dict[str, Any]:
-    return report_to_client(scenario_by_report_id(report_id))
+async def get_report(report_id: str) -> dict[str, Any]:
+    scenario = await get_scenario_by_report_id(report_id)
+    return report_to_client(scenario)
