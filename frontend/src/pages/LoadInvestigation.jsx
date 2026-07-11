@@ -67,11 +67,14 @@ function ScenarioCard({ scenario }) {
   );
 }
 
+import { useNotifications } from "../context/NotificationContext.jsx";
+
 export default function LoadInvestigation() {
   const navigate = useNavigate();
   const [progressOpen, setProgressOpen] = useState(false);
   const [uploadStatus, setUploadStatus] = useState("Ready");
   const [scenarios, setScenarios] = useState(scenarioCards);
+  const { addNotification } = useNotifications();
 
   useEffect(() => {
     api.getScenarios().then(setScenarios);
@@ -81,7 +84,13 @@ export default function LoadInvestigation() {
     setUploadStatus("Uploading and validating logs...");
     const result = await api.uploadLogs([]);
     setUploadStatus(`Upload accepted. ${result.processed} events ready for normalization.`);
-  }, []);
+    addNotification(`Successfully uploaded ${result.processed} logs for normalization.`, "info");
+  }, [addNotification]);
+
+  const handleInvestigationComplete = () => {
+    addNotification("Investigation INV-1001 completed successfully!", "success");
+    navigate("/investigations/INV-1001");
+  };
 
   return (
     <>
@@ -209,7 +218,7 @@ export default function LoadInvestigation() {
         </div>
       </section>
 
-      <ProgressModal open={progressOpen} onComplete={() => navigate("/investigations/INV-1001")} />
+      <ProgressModal open={progressOpen} onComplete={handleInvestigationComplete} />
     </>
   );
 }

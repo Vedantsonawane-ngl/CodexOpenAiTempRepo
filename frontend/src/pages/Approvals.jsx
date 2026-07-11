@@ -4,11 +4,13 @@ import { Card } from "../components/Card.jsx";
 import PageHeader from "../components/PageHeader.jsx";
 import { StatusBadge } from "../components/Badges.jsx";
 import { approvals as initialApprovals } from "../data/mockData.js";
+import { useNotifications } from "../context/NotificationContext.jsx";
 
 export default function Approvals() {
   const [approvals, setApprovals] = useState(initialApprovals);
   const [modal, setModal] = useState(null);
   const [comment, setComment] = useState("");
+  const { addNotification } = useNotifications();
 
   useEffect(() => {
     api.getApprovals().then(setApprovals);
@@ -18,8 +20,10 @@ export default function Approvals() {
     if (!modal) return;
     if (nextStatus === "Approved") {
       await api.approveAction(modal.id, comment);
+      addNotification(`Approved containment action: ${modal.action} on target ${modal.target}`, "success");
     } else {
       await api.rejectAction(modal.id, comment);
+      addNotification(`Rejected containment action: ${modal.action} on target ${modal.target}`, "warning");
     }
     setApprovals((items) => items.map((item) => (item.id === modal.id ? { ...item, status: nextStatus } : item)));
     setModal(null);

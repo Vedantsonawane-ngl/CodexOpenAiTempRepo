@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext.jsx";
+import { NotificationProvider } from "./context/NotificationContext.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import AppShell from "./components/AppShell.jsx";
 import Login from "./pages/Login.jsx";
@@ -18,29 +19,31 @@ import Reports from "./pages/Reports.jsx";
 export default function App() {
   return (
     <AuthProvider>
-      <Routes>
-        {/* Public auth routes */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
+      <NotificationProvider>
+        <Routes>
+          {/* Public auth routes */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
 
-        {/* Protected operational routes */}
-        <Route element={<ProtectedRoute />}>
-          <Route element={<AppShell />}>
-            <Route index element={<Navigate replace to="/investigations/new" />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/alerts" element={<Alerts />} />
-            <Route path="/alerts/:alertId" element={<AlertDetails />} />
-            <Route path="/investigations/new" element={<LoadInvestigation />} />
-            <Route path="/investigations/:investigationId" element={<Investigation />} />
-            <Route path="/entities" element={<Entities />} />
-            <Route path="/approvals" element={<Approvals />} />
-            <Route path="/reports" element={<Reports />} />
-            <Route path="/reports/:reportId" element={<ReportDetails />} />
+          {/* Protected operational routes */}
+          <Route element={<ProtectedRoute />}>
+            <Route element={<AppShell />}>
+              <Route index element={<Navigate replace to="/investigations/new" />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/alerts" element={<Alerts />} />
+              <Route path="/alerts/:alertId" element={<AlertDetails />} />
+              <Route path="/investigations/new" element={<LoadInvestigation />} />
+              <Route path="/investigations/:investigationId" element={<Investigation />} />
+              <Route path="/entities" element={<Entities />} />
+              <Route path="/approvals" element={<Approvals />} />
+              <Route path="/reports" element={<Reports />} />
+              <Route path="/reports/:reportId" element={<ReportDetails />} />
+            </Route>
           </Route>
-        </Route>
 
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </NotificationProvider>
     </AuthProvider>
   );
 }
