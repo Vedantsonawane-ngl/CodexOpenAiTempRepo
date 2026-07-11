@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
 import Icon from "./Icon.jsx";
+import { useAuth } from "../context/AuthContext.jsx";
 
 const navItems = [
   { to: "/dashboard", icon: "dashboard", label: "Dashboard" },
@@ -19,6 +20,8 @@ function navClass({ isActive }) {
 }
 
 export default function Sidebar() {
+  const { logout } = useAuth();
+
   return (
     <aside className="group fixed left-0 top-0 z-50 flex h-full w-20 flex-col border-r border-outline-variant bg-surface-container-low py-md transition-all duration-300 hover:w-64">
       <div className="mb-xl flex items-center gap-md px-lg">
@@ -53,12 +56,16 @@ export default function Sidebar() {
             Support
           </span>
         </a>
-        <a className="flex items-center gap-md rounded-lg p-md text-on-surface-variant transition-colors hover:bg-surface-container-highest" href="#">
+        <button
+          onClick={logout}
+          className="flex w-full items-center gap-md rounded-lg p-md text-on-surface-variant transition-colors hover:bg-surface-container-highest text-left"
+          type="button"
+        >
           <Icon name="logout" className="shrink-0" />
           <span className="font-geist text-[11px] uppercase tracking-[0.05em] opacity-0 transition-opacity group-hover:opacity-100">
             Logout
           </span>
-        </a>
+        </button>
       </div>
     </aside>
   );

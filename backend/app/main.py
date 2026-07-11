@@ -9,11 +9,13 @@ from pathlib import Path
 from typing import Any
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Depends, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from groq import AsyncGroq
 from pydantic import BaseModel, field_validator
+import hashlib
+import secrets
 
 load_dotenv()
 
@@ -29,6 +31,7 @@ logger = logging.getLogger("intellisoc")
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SAMPLE_LOGS_DIR = REPO_ROOT / "sample_logs"
 ALERTS_FILE = REPO_ROOT / "backend" / "app" / "sample_data" / "alerts.json"
+USERS_FILE = REPO_ROOT / "backend" / "app" / "sample_data" / "users.json"
 
 # ── Groq client ───────────────────────────────────────────────────────────────
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
@@ -109,6 +112,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 # ── In-memory state ───────────────────────────────────────────────────────────
 approval_state: dict[str, dict[str, Any]] = {}
+active_sessions: dict[str, dict[str, Any]] = {}
 
 
 # ── File I/O (async) ──────────────────────────────────────────────────────────
@@ -122,6 +126,92 @@ async def read_json_async(path: Path) -> Any:
 def _read_json_sync(path: Path) -> Any:
     with path.open("r", encoding="utf-8") as f:
         return json.load(f)
+
+
+class SignupRequest(BaseModel):
+    username: str
+    email: str
+    password: str
+
+    @field_validator("username")
+    @classmethod
+    def validate_username(cls, v: str) -> str:
+        v = v.strip()
+        if not v:
+            raise ValueError("Username cannot be empty.")
+        if len(v) < 3:
+            raise ValueError("Username must be at least 3 characters.")
+        if not v.isalnum():
+            raise ValueError("Username must be alphanumeric.")
+        return v
+
+    @field_validator("email")
+    @classmethod
+    def validate_email(cls, v: str) -> str:
+        v = v.strip().lower()
+        if "@" not in v:
+            raise ValueError("Invalid email address.")
+        return v
+
+    @field_validator("password")
+    @classmethod
+    def validate_password(cls, v: str) -> str:
+        if len(v) < 6:
+            raise ValueError("Password must be at least 6 characters.")
+        return v
+
+
+class LoginRequest(BaseModel):
+    username_or_email: str
+    password: str
+
+
+def hash_password(password: str, salt: str = None) -> tuple[str, str]:
+    if not salt:
+        salt = secrets.token_hex(16)
+    pw_hash = hashlib.pbkdf2_hmac(
+        "sha256",
+        password.encode("utf-8"),
+        salt.encode("utf-8"),
+        100000
+    ).hex()
+    return pw_hash, salt
+
+
+def verify_password(password: str, pw_hash: str, salt: str) -> bool:
+    expected_hash, _ = hash_password(password, salt)
+    return secrets.compare_digest(expected_hash, pw_hash)
+
+
+async def load_users_async() -> list[dict[str, Any]]:
+    if not USERS_FILE.exists():
+        return []
+    try:
+        return await read_json_async(USERS_FILE)
+    except Exception as e:
+        logger.error("Failed to load users: %s", e)
+        return []
+
+
+def _write_json_sync_data(path: Path, data: Any) -> None:
+    with path.open("w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
+
+
+async def save_users_async(users: list[dict[str, Any]]) -> None:
+    import asyncio
+    loop = asyncio.get_event_loop()
+    await loop.run_in_executor(None, _write_json_sync_data, USERS_FILE, users)
+
+
+async def get_current_user(authorization: str | None = Header(None)) -> dict[str, Any]:
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Authentication credentials missing or invalid.")
+    token = authorization.split("Bearer ", 1)[1].strip()
+    user_info = active_sessions.get(token)
+    if not user_info:
+        raise HTTPException(status_code=401, detail="Session expired or invalid token.")
+    return user_info
 
 
 async def load_scenarios_async() -> list[dict[str, Any]]:
@@ -481,6 +571,66 @@ Analyze these logs and produce a full investigation report as a JSON object."""
 
 
 # ── Routes ────────────────────────────────────────────────────────────────────
+# ── Authentication Routes ─────────────────────────────────────────────────────
+@app.post("/auth/signup")
+async def signup(payload: SignupRequest) -> dict[str, Any]:
+    users = await load_users_async()
+    for user in users:
+        if user["username"].lower() == payload.username.lower():
+            raise HTTPException(status_code=400, detail="Username is already taken.")
+        if user["email"].lower() == payload.email.lower():
+            raise HTTPException(status_code=400, detail="Email is already registered.")
+
+    pw_hash, salt = hash_password(payload.password)
+    new_user = {
+        "username": payload.username,
+        "email": payload.email,
+        "password_hash": pw_hash,
+        "salt": salt,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    users.append(new_user)
+    await save_users_async(users)
+    logger.info("New user registered: %s", payload.username)
+    return {"message": "Registration successful.", "username": payload.username}
+
+
+@app.post("/auth/login")
+async def login(payload: LoginRequest) -> dict[str, Any]:
+    users = await load_users_async()
+    target_user = None
+    search_term = payload.username_or_email.strip().lower()
+    for user in users:
+        if user["username"].lower() == search_term or user["email"].lower() == search_term:
+            target_user = user
+            break
+
+    if not target_user or not verify_password(payload.password, target_user["password_hash"], target_user["salt"]):
+        raise HTTPException(status_code=400, detail="Invalid username/email or password.")
+
+    token = secrets.token_hex(32)
+    user_info = {
+        "username": target_user["username"],
+        "email": target_user["email"]
+    }
+    active_sessions[token] = user_info
+    logger.info("User logged in: %s", target_user["username"])
+    return {"token": token, "user": user_info}
+
+
+@app.get("/auth/me")
+async def get_me(current_user: dict[str, Any] = Depends(get_current_user)) -> dict[str, Any]:
+    return {"user": current_user}
+
+
+@app.post("/auth/logout")
+async def logout(authorization: str | None = Header(None)) -> dict[str, Any]:
+    if authorization and authorization.startswith("Bearer "):
+        token = authorization.split("Bearer ", 1)[1].strip()
+        active_sessions.pop(token, None)
+    return {"message": "Logged out successfully."}
+
+
 @app.get("/health")
 async def health() -> dict[str, Any]:
     return {
@@ -492,7 +642,7 @@ async def health() -> dict[str, Any]:
     }
 
 
-@app.get("/scenarios")
+@app.get("/scenarios", dependencies=[Depends(get_current_user)])
 async def get_scenarios() -> list[dict[str, Any]]:
     scenarios = []
     for scenario in await load_scenarios_async():
@@ -515,12 +665,12 @@ async def get_scenarios() -> list[dict[str, Any]]:
     return scenarios
 
 
-@app.get("/alerts")
+@app.get("/alerts", dependencies=[Depends(get_current_user)])
 async def get_alerts() -> list[dict[str, Any]]:
     return [alert_to_client(s) for s in await load_scenarios_async()]
 
 
-@app.get("/alerts/{alert_id}")
+@app.get("/alerts/{alert_id}", dependencies=[Depends(get_current_user)])
 async def get_alert(alert_id: str) -> dict[str, Any]:
     scenario = await get_scenario_by_alert_id(alert_id)
     alert = alert_to_client(scenario)
@@ -528,7 +678,7 @@ async def get_alert(alert_id: str) -> dict[str, Any]:
     return {**alert, "logs": investigation["logs"], "entities": investigation["entities"]}
 
 
-@app.post("/logs/upload")
+@app.post("/logs/upload", dependencies=[Depends(get_current_user)])
 async def upload_logs(payload: LogUpload) -> dict[str, Any]:
     scenarios = await load_scenarios_async()
     detected_alerts = [alert_to_client(s) for s in scenarios[:1]]
@@ -537,7 +687,7 @@ async def upload_logs(payload: LogUpload) -> dict[str, Any]:
     return {"processed": processed, "detected_alerts": detected_alerts, "status": "accepted"}
 
 
-@app.post("/investigations/run/{alert_id}")
+@app.post("/investigations/run/{alert_id}", dependencies=[Depends(get_current_user)])
 async def run_investigation(alert_id: str) -> dict[str, Any]:
     """
     Run a full AI-powered investigation on the given alert.
@@ -547,13 +697,13 @@ async def run_investigation(alert_id: str) -> dict[str, Any]:
     return await run_ai_investigation(scenario)
 
 
-@app.get("/investigations/{investigation_id}")
+@app.get("/investigations/{investigation_id}", dependencies=[Depends(get_current_user)])
 async def get_investigation(investigation_id: str) -> dict[str, Any]:
     scenario = await get_scenario_by_investigation_id(investigation_id)
     return investigation_to_client(scenario)
 
 
-@app.get("/approvals")
+@app.get("/approvals", dependencies=[Depends(get_current_user)])
 async def get_approvals() -> list[dict[str, Any]]:
     approvals: list[dict[str, Any]] = []
     for scenario in await load_scenarios_async():
@@ -561,26 +711,26 @@ async def get_approvals() -> list[dict[str, Any]]:
     return approvals
 
 
-@app.post("/approvals/{action_id}/approve")
+@app.post("/approvals/{action_id}/approve", dependencies=[Depends(get_current_user)])
 async def approve_action(action_id: str, payload: ApprovalDecision) -> dict[str, Any]:
     approval_state[action_id] = {"status": "Approved", "comment": payload.comment or ""}
     logger.info("Action %s approved.", action_id)
     return {"id": action_id, **approval_state[action_id]}
 
 
-@app.post("/approvals/{action_id}/reject")
+@app.post("/approvals/{action_id}/reject", dependencies=[Depends(get_current_user)])
 async def reject_action(action_id: str, payload: ApprovalDecision) -> dict[str, Any]:
     approval_state[action_id] = {"status": "Rejected", "comment": payload.comment or ""}
     logger.info("Action %s rejected.", action_id)
     return {"id": action_id, **approval_state[action_id]}
 
 
-@app.get("/reports")
+@app.get("/reports", dependencies=[Depends(get_current_user)])
 async def get_reports() -> list[dict[str, Any]]:
     return [report_to_client(s) for s in await load_scenarios_async()]
 
 
-@app.get("/reports/{report_id}")
+@app.get("/reports/{report_id}", dependencies=[Depends(get_current_user)])
 async def get_report(report_id: str) -> dict[str, Any]:
     scenario = await get_scenario_by_report_id(report_id)
     return report_to_client(scenario)

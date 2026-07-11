@@ -1,6 +1,10 @@
 import Icon from "./Icon.jsx";
+import { useAuth } from "../context/AuthContext.jsx";
 
 export default function TopHeader({ title }) {
+  const { user } = useAuth();
+  const initials = user?.username ? user.username.slice(0, 2).toUpperCase() : "OP";
+  const displayName = user?.username ? user.username : "Operator";
   return (
     <header className="sticky top-0 z-40 flex h-16 w-full items-center justify-between border-b border-outline-variant bg-surface-dim px-margin">
       <div className="flex flex-1 items-center gap-lg">
@@ -30,9 +34,9 @@ export default function TopHeader({ title }) {
         <div className="mx-xs h-6 w-px bg-outline-variant" />
         <button className="flex items-center gap-sm rounded-full p-xs pr-md transition-colors hover:bg-surface-container-high" type="button">
           <div className="grid h-8 w-8 place-items-center rounded-full border border-primary/20 bg-secondary-container/30 font-geist text-[11px] font-black text-primary">
-            A4
+            {initials}
           </div>
-          <span className="font-geist text-[11px] uppercase text-on-surface">Analyst 04</span>
+          <span className="font-geist text-[11px] uppercase text-on-surface">{displayName}</span>
         </button>
       </div>
     </header>

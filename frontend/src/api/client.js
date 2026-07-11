@@ -3,27 +3,73 @@ import { alerts, approvals, investigation, rawLogs, reports, scenarioCards } fro
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
 
 async function request(path, options = {}, fallback) {
+  const token = localStorage.getItem("token");
+  const headers = {
+    "Content-Type": "application/json",
+    ...(options.headers || {})
+  };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
   try {
     const response = await fetch(`${API_BASE_URL}${path}`, {
-      headers: {
-        "Content-Type": "application/json",
-        ...(options.headers || {})
-      },
-      ...options
+      ...options,
+      headers
     });
 
     if (!response.ok) {
-      throw new Error(`API request failed: ${response.status}`);
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || `API request failed: ${response.status}`);
     }
 
     return await response.json();
   } catch (error) {
     console.info(`Using mock data for ${path}: ${error.message}`);
+    if (fallback === undefined) {
+      throw error;
+    }
     return fallback;
   }
 }
 
 export const api = {
+  login(usernameOrEmail, password) {
+    return request(
+      "/auth/login",
+      {
+        method: "POST",
+        body: JSON.stringify({ username_or_email: usernameOrEmail, password })
+      },
+      usernameOrEmail.toLowerCase() === "analyst" && password === "password"
+        ? { token: "mock-token-123", user: { username: "analyst", email: "analyst@acme.com" } }
+        : undefined
+    );
+  },
+  signup(username, email, password) {
+    return request(
+      "/auth/signup",
+      {
+        method: "POST",
+        body: JSON.stringify({ username, email, password })
+      },
+      { message: "Registration successful (Mock).", username }
+    );
+  },
+  getMe() {
+    return request(
+      "/auth/me",
+      {},
+      { user: { username: "analyst", email: "analyst@acme.com" } }
+    );
+  },
+  logout() {
+    return request(
+      "/auth/logout",
+      { method: "POST" },
+      { message: "Logged out successfully (Mock)." }
+    );
+  },
   getAlerts() {
     return request("/alerts", {}, alerts);
   },

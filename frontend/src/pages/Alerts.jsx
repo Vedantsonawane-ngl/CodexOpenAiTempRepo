@@ -27,7 +27,7 @@ export default function Alerts() {
       const matchesStatus = status === "All" || alert.status === status;
       return matchesQuery && matchesSeverity && matchesStatus;
     });
-  }, [query, severity, status]);
+  }, [alerts, query, severity, status]);
 
   return (
     <div className="space-y-lg">
