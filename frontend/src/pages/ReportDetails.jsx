@@ -8,6 +8,7 @@ import Timeline from "../components/Timeline.jsx";
 import { ConfidenceRing, SeverityBadge } from "../components/Badges.jsx";
 import { investigation, reports } from "../data/mockData.js";
 import { useNotifications } from "../context/NotificationContext.jsx";
+import { jsPDF } from "jspdf";
 
 export default function ReportDetails() {
   const { reportId } = useParams();
@@ -21,29 +22,128 @@ export default function ReportDetails() {
   }, [reportId]);
 
   const downloadReport = () => {
-    const reportData = {
-      reportId: report.id,
-      title: report.title,
-      severity: currentInvestigation.severity,
-      confidence: currentInvestigation.confidence,
-      attackType: currentInvestigation.attackType,
-      summary: report.summary || currentInvestigation.summary,
-      timeline: currentInvestigation.timeline,
-      findings: currentInvestigation.findings,
-      recommendations: currentInvestigation.recommendations,
-      entities: currentInvestigation.entities,
-      generatedAt: new Date().toISOString()
+    const doc = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4"
+    });
+
+    const title = report.title || "Incident Report";
+    const reportNum = reportId || "RPT-1001";
+    const severity = currentInvestigation.severity || "High";
+    const confidence = currentInvestigation.confidence || 90;
+    const attackType = currentInvestigation.attackType || "Unknown";
+    const summary = report.summary || currentInvestigation.summary || "";
+
+    const margin = 20;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const contentWidth = pageWidth - margin * 2;
+    let y = 20;
+
+    // Header Panel
+    doc.setFillColor(15, 15, 17);
+    doc.rect(0, 0, pageWidth, 45, "F");
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(22);
+    doc.setTextColor(173, 102, 255);
+    doc.text("intelliSOC Incident Report", margin, 18);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.setTextColor(200, 200, 200);
+    doc.text(`Report ID: ${reportNum} | Severity: ${severity} | Confidence: ${confidence}%`, margin, 26);
+    doc.text(`Generated on: ${new Date().toLocaleString()} | Classification: Internal Use Only`, margin, 32);
+
+    doc.setDrawColor(80, 80, 80);
+    doc.line(margin, 40, pageWidth - margin, 40);
+
+    y = 55;
+
+    const drawSectionHeader = (titleText) => {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(14);
+      doc.setTextColor(173, 102, 255);
+      doc.text(titleText, margin, y);
+      y += 6;
+      doc.setDrawColor(220, 220, 220);
+      doc.line(margin, y, pageWidth - margin, y);
+      y += 8;
     };
 
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(reportData, null, 2));
-    const downloadAnchor = document.createElement("a");
-    downloadAnchor.setAttribute("href", dataStr);
-    downloadAnchor.setAttribute("download", `incident_report_${reportId || "default"}.json`);
-    document.body.appendChild(downloadAnchor);
-    downloadAnchor.click();
-    downloadAnchor.remove();
+    // Executive Summary
+    drawSectionHeader("1. Executive Summary");
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.setTextColor(40, 40, 40);
+    const splitSummary = doc.splitTextToSize(summary, contentWidth);
+    doc.text(splitSummary, margin, y);
+    y += splitSummary.length * 5 + 12;
 
-    addNotification(`Incident report ${reportId} downloaded successfully for Power BI!`, "success");
+    // Profile Details
+    drawSectionHeader("2. Incident Profile");
+    doc.setFont("helvetica", "bold");
+    doc.text("Attack Vector:", margin, y);
+    doc.setFont("helvetica", "normal");
+    doc.text(attackType, margin + 40, y);
+    y += 6;
+
+    doc.setFont("helvetica", "bold");
+    doc.text("Affected User:", margin, y);
+    doc.setFont("helvetica", "normal");
+    doc.text(currentInvestigation.user || "N/A", margin + 40, y);
+    y += 15;
+
+    if (y > 250) {
+      doc.addPage();
+      y = 20;
+    }
+
+    // Key Findings
+    drawSectionHeader("3. Analysis & Key Findings");
+    doc.setFont("helvetica", "normal");
+
+    currentInvestigation.findings.forEach((finding, index) => {
+      if (y > 250) {
+        doc.addPage();
+        y = 20;
+      }
+      doc.setFont("helvetica", "bold");
+      doc.text(`${index + 1}. ${finding.finding}`, margin, y);
+      y += 5;
+
+      doc.setFont("helvetica", "normal");
+      doc.text(`Severity: ${finding.severity}`, margin + 5, y);
+      y += 5;
+
+      const splitEvidence = doc.splitTextToSize(`Evidence: ${finding.evidence}`, contentWidth - 10);
+      doc.text(splitEvidence, margin + 5, y);
+      y += splitEvidence.length * 4.5 + 6;
+    });
+
+    y += 6;
+
+    if (y > 240) {
+      doc.addPage();
+      y = 20;
+    }
+
+    // Recommendations
+    drawSectionHeader("4. Mitigation & Recommendations");
+    doc.setFont("helvetica", "normal");
+
+    currentInvestigation.recommendations.forEach((rec, index) => {
+      if (y > 270) {
+        doc.addPage();
+        y = 20;
+      }
+      const splitRec = doc.splitTextToSize(`• ${rec}`, contentWidth);
+      doc.text(splitRec, margin, y);
+      y += splitRec.length * 5 + 2;
+    });
+
+    doc.save(`incident_report_${reportNum}.pdf`);
+    addNotification(`Incident report ${reportNum} downloaded successfully as PDF!`, "success");
   };
 
   return (
