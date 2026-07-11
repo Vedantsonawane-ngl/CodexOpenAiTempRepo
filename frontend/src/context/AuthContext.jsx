@@ -5,7 +5,7 @@ const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem("token"));
+  const [token, setToken] = useState(sessionStorage.getItem("token"));
   const [loading, setLoading] = useState(true);
 
   // Validate session on load or token change
@@ -35,7 +35,7 @@ export function AuthProvider({ children }) {
     try {
       const res = await api.login(usernameOrEmail, password);
       if (res && res.token) {
-        localStorage.setItem("token", res.token);
+        sessionStorage.setItem("token", res.token);
         setToken(res.token);
         setUser(res.user);
         return res.user;
@@ -63,7 +63,7 @@ export function AuthProvider({ children }) {
     } catch (error) {
       console.warn("Logout request failed:", error);
     } finally {
-      localStorage.removeItem("token");
+      sessionStorage.removeItem("token");
       setToken(null);
       setUser(null);
     }

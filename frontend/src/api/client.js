@@ -3,7 +3,7 @@ import { alerts, approvals, investigation, rawLogs, reports, scenarioCards } fro
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
 
 async function request(path, options = {}, fallback) {
-  const token = localStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
   const headers = {
     "Content-Type": "application/json",
     ...(options.headers || {})
