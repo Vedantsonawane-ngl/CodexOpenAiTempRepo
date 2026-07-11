@@ -1,10 +1,40 @@
+import React, { useState, useEffect, useRef } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import Icon from "./Icon.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 
 export default function TopHeader({ title }) {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const [searchValue, setSearchValue] = useState(searchParams.get("query") || "");
+  const inputRef = useRef(null);
+
   const initials = user?.username ? user.username.slice(0, 2).toUpperCase() : "OP";
   const displayName = user?.username ? user.username : "Operator";
+
+  // Keep search input in sync with URL parameter if it changes elsewhere
+  useEffect(() => {
+    setSearchValue(searchParams.get("query") || "");
+  }, [searchParams]);
+
+  // Handle Ctrl+K shortcut to focus search input
+  useEffect(() => {
+    const handleGlobalKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        inputRef.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
+  }, []);
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    navigate(`/alerts?query=${encodeURIComponent(searchValue.trim())}`);
+  };
+
   return (
     <header className="sticky top-0 z-40 flex h-16 w-full items-center justify-between border-b border-outline-variant bg-surface-dim px-margin">
       <div className="flex flex-1 items-center gap-lg">
@@ -14,15 +44,18 @@ export default function TopHeader({ title }) {
             intelliSOC / Operations
           </p>
         </div>
-        <label className="hidden w-96 items-center rounded-lg border border-outline-variant/30 bg-surface-container-high px-md py-xs md:flex">
+        <form onSubmit={handleSearchSubmit} className="hidden w-96 items-center rounded-lg border border-outline-variant/30 bg-surface-container-high px-md py-xs md:flex">
           <Icon name="search" className="mr-sm text-[20px] text-on-surface-variant" />
           <input
-            className="w-full border-none bg-transparent text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:ring-0"
+            ref={inputRef}
+            className="w-full border-none bg-transparent text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:ring-0 focus:outline-none"
             placeholder="Search alerts, entities, logs..."
             type="text"
+            value={searchValue}
+            onChange={(e) => setSearchValue(e.target.value)}
           />
           <span className="font-geist text-[10px] uppercase text-on-surface-variant">Ctrl K</span>
-        </label>
+        </form>
       </div>
 
       <div className="flex items-center gap-md">

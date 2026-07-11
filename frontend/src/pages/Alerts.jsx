@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { api } from "../api/client.js";
 import Icon from "../components/Icon.jsx";
 import PageHeader from "../components/PageHeader.jsx";
@@ -8,9 +8,15 @@ import { alerts as mockAlerts } from "../data/mockData.js";
 
 export default function Alerts() {
   const [alerts, setAlerts] = useState(mockAlerts);
-  const [query, setQuery] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [query, setQuery] = useState(searchParams.get("query") || "");
   const [severity, setSeverity] = useState("All");
   const [status, setStatus] = useState("All");
+
+  // Sync state if search parameter updates
+  useEffect(() => {
+    setQuery(searchParams.get("query") || "");
+  }, [searchParams]);
 
   const refreshAlerts = useCallback(async () => {
     setAlerts(await api.getAlerts());
@@ -19,6 +25,18 @@ export default function Alerts() {
   useEffect(() => {
     refreshAlerts();
   }, [refreshAlerts]);
+
+  const handleQueryChange = (value) => {
+    setQuery(value);
+    setSearchParams((prev) => {
+      if (value) {
+        prev.set("query", value);
+      } else {
+        prev.delete("query");
+      }
+      return prev;
+    });
+  };
 
   const filtered = useMemo(() => {
     return alerts.filter((alert) => {
@@ -50,7 +68,7 @@ export default function Alerts() {
               className="w-full border-none bg-transparent py-sm text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:ring-0"
               placeholder="Search alerts..."
               value={query}
-              onChange={(event) => setQuery(event.target.value)}
+              onChange={(event) => handleQueryChange(event.target.value)}
             />
           </label>
           <select className="rounded border border-outline-variant bg-surface-container-high p-sm text-sm" value={severity} onChange={(event) => setSeverity(event.target.value)}>
