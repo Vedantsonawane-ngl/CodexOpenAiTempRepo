@@ -14,6 +14,7 @@ export default function TopHeader({ title }) {
   const { notifications, markAllAsRead, clearNotifications } = useNotifications();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   const initials = user?.username ? user.username.slice(0, 2).toUpperCase() : "OP";
@@ -133,11 +134,57 @@ export default function TopHeader({ title }) {
           )}
         </div>
 
-        {["settings", "help"].map((icon) => (
-          <button key={icon} className="rounded-full p-sm text-on-surface-variant transition-colors hover:bg-surface-container-high" type="button">
-            <Icon name={icon} />
-          </button>
-        ))}
+        <button className="rounded-full p-sm text-on-surface-variant transition-colors hover:bg-surface-container-high" type="button">
+          <Icon name="settings" />
+        </button>
+        <button
+          onClick={() => setHelpOpen(true)}
+          className="rounded-full p-sm text-on-surface-variant transition-colors hover:bg-surface-container-high"
+          type="button"
+        >
+          <Icon name="help" />
+        </button>
+
+        {helpOpen && (
+          <div className="fixed inset-0 z-[100] grid place-items-center bg-black/80 p-lg backdrop-blur-sm">
+            <div className="w-full max-w-lg rounded-none border border-primary bg-[#050705] p-lg font-mono text-xs">
+              <div className="mb-md border-b border-primary/30 pb-xs flex items-center justify-between">
+                <span className="font-bold text-primary">SYSTEM INFORMATION (INTELLISOC)</span>
+                <button
+                  onClick={() => setHelpOpen(false)}
+                  className="bg-primary px-sm py-[2px] text-black font-bold uppercase tracking-wider hover:opacity-80 active:scale-95"
+                >
+                  [Esc] Close
+                </button>
+              </div>
+              <div className="space-y-md text-primary leading-relaxed">
+                <div>
+                  <h4 className="font-bold text-primary uppercase">[Project Description]</h4>
+                  <p className="mt-xs">
+                    intelliSOC is an AI-powered Security Operations Center (SOC) triage and correlation console. It normalizes log events, correlates threat timelines, extracts critical forensic entities, and runs rule-based containment workflows.
+                  </p>
+                </div>
+                <div>
+                  <h4 className="font-bold text-primary uppercase">[Operational Features]</h4>
+                  <ul className="list-inside list-disc mt-xs space-y-xs">
+                    <li>Multi-source unified schemas</li>
+                    <li>Timeline event sequence tracking</li>
+                    <li>Containment action queue with human approvals</li>
+                    <li>PDF Incident report exporter</li>
+                    <li>Monospace terminal styling interface</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-bold text-primary uppercase">[Architecture Details]</h4>
+                  <p className="mt-xs">
+                    - Front-end Console: React 18, React Router v6, Tailwind CSS, Vite.<br />
+                    - Core Analytics Engine: FastAPI (Python 3.11), Uvicorn Server, Groq LLaMA 3.3.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
         <div className="mx-xs h-6 w-px bg-outline-variant" />
         <div className="relative">
           <button
