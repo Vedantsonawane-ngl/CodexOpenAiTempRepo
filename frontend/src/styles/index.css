@@ -7,14 +7,14 @@
 }
 
 html {
-  background: #080b10;
+  background: #000000;
 }
 
 body {
   margin: 0;
-  background: #080b10;
-  color: #f8fafc;
-  font-family: Inter, sans-serif;
+  background: #000000;
+  color: #39ff14;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -34,18 +34,18 @@ textarea {
 }
 
 .card-glass {
-  background: #0f141c;
-  border: 1px solid #1e293b;
+  background: #050705;
+  border: 1px solid #005500;
   transition: all 0.15s ease-in-out;
 }
 
 .card-glass:hover {
-  border-color: #3b82f6;
-  background: #151b26;
+  border-color: #39ff14;
+  background: #0c140c;
 }
 
 .active-nav-glow {
-  box-shadow: 0 0 10px rgba(59, 130, 246, 0.15);
+  box-shadow: 0 0 10px rgba(57, 255, 20, 0.25);
 }
 
 .custom-scrollbar::-webkit-scrollbar {
