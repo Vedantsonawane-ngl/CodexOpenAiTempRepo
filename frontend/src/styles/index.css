@@ -7,16 +7,13 @@
 }
 
 html {
-  background: #0a0a0b;
+  background: #080b10;
 }
 
 body {
   margin: 0;
-  background:
-    radial-gradient(circle at top right, rgba(87, 27, 193, 0.16), transparent 30rem),
-    radial-gradient(circle at bottom left, rgba(99, 102, 241, 0.08), transparent 28rem),
-    #0a0a0b;
-  color: #e5e2e3;
+  background: #080b10;
+  color: #f8fafc;
   font-family: Inter, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
@@ -37,18 +34,18 @@ textarea {
 }
 
 .card-glass {
-  background: #111827;
-  border: 1px solid #1f2937;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #0f141c;
+  border: 1px solid #1e293b;
+  transition: all 0.15s ease-in-out;
 }
 
 .card-glass:hover {
-  border-color: #6366f1;
-  background: #181e2e;
+  border-color: #3b82f6;
+  background: #151b26;
 }
 
 .active-nav-glow {
-  box-shadow: 0 0 15px rgba(99, 102, 241, 0.2);
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.15);
 }
 
 .custom-scrollbar::-webkit-scrollbar {
