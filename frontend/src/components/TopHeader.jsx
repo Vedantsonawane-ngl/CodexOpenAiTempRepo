@@ -13,6 +13,7 @@ export default function TopHeader({ title }) {
   
   const { notifications, markAllAsRead, clearNotifications } = useNotifications();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   const initials = user?.username ? user.username.slice(0, 2).toUpperCase() : "OP";
@@ -138,12 +139,46 @@ export default function TopHeader({ title }) {
           </button>
         ))}
         <div className="mx-xs h-6 w-px bg-outline-variant" />
-        <button className="flex items-center gap-sm rounded-full p-xs pr-md transition-colors hover:bg-surface-container-high" type="button">
-          <div className="grid h-8 w-8 place-items-center rounded-full border border-primary/20 bg-secondary-container/30 font-geist text-[11px] font-black text-primary">
-            {initials}
-          </div>
-          <span className="font-geist text-[11px] uppercase text-on-surface">{displayName}</span>
-        </button>
+        <div className="relative">
+          <button
+            onClick={() => setProfileOpen(!profileOpen)}
+            className="flex items-center gap-sm rounded-full p-xs pr-md transition-colors hover:bg-surface-container-high"
+            type="button"
+          >
+            <div className="grid h-8 w-8 place-items-center rounded-full border border-primary/20 bg-secondary-container/30 font-geist text-[11px] font-black text-primary">
+              {initials}
+            </div>
+            <span className="font-geist text-[11px] uppercase text-on-surface">{displayName}</span>
+          </button>
+
+          {profileOpen && (
+            <div className="absolute right-0 mt-xs w-64 rounded-xl card-glass border border-outline-variant/30 bg-[#000000] p-md shadow-soft-purple z-50">
+              <div className="mb-sm border-b border-outline-variant/30 pb-xs flex items-center justify-between">
+                <span className="font-geist text-xs font-bold text-primary">Operator Profile</span>
+                <button
+                  onClick={() => setProfileOpen(false)}
+                  className="text-on-surface-variant hover:text-primary text-[10px]"
+                >
+                  Close
+                </button>
+              </div>
+              <div className="space-y-sm text-xs font-mono">
+                <div>
+                  <span className="text-[10px] text-on-surface-variant uppercase tracking-wider block">Username</span>
+                  <span className="font-semibold text-primary">{user?.username || "Operator"}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-on-surface-variant uppercase tracking-wider block">Email Address</span>
+                  <span className="font-semibold text-primary break-all">{user?.email || "operator@intellisoc.local"}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-on-surface-variant uppercase tracking-wider block">System Access</span>
+                  <span className="font-semibold text-primary">AUTHORIZED OPERATOR</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );
