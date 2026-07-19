@@ -5,5 +5,19 @@
     "password_hash": "e7c8cab015cce55314aed4ed0b946ba6cc602468e5f255b5db69dff9ff2b5590",
     "salt": "251eb038837715cad25c1bdda0858f67",
     "created_at": "2026-07-11T13:38:21.403557+00:00"
+  },
+  {
+    "username": "tanmay",
+    "email": "tanmayyenpure2005@gmail.com",
+    "password_hash": "a98018e3fdce256f4a46cfccba4322235f1da8fb43f136fd794c846eddde13e3",
+    "salt": "76eabc23699e21da1369d0912d989c6c",
+    "created_at": "2026-07-16T15:30:57.317471+00:00"
+  },
+  {
+    "username": "john",
+    "email": "john@gmail.com",
+    "password_hash": "89e18943126283233c56a29e71bc4f9dfc1ad837b4ee1841487e28a4126cf62c",
+    "salt": "c82027c4b1b32d5889a5a49ee617cad9",
+    "created_at": "2026-07-16T15:51:28.921815+00:00"
   }
 ]
