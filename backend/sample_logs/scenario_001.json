@@ -1,0 +1,423 @@
+{
+  "scenario_id": "credential_compromise",
+  "name": "Possible Account Compromise",
+  "description": "Simulated Possible Account Compromise investigation.",
+  "alert": {
+    "alert_id": "ALT-1001",
+    "title": "Possible Account Compromise",
+    "severity": "High",
+    "affected_user": "riya@acme.com",
+    "detected_time": "2026-07-06T09:15:00Z",
+    "status": "New"
+  },
+  "logs": [
+    {
+      "id": "LOG-001-001",
+      "display_time": "09:01",
+      "timestamp": "2026-07-06T09:01:00Z",
+      "source": "azure_ad",
+      "event": "normal_activity",
+      "user": "riya@acme.com",
+      "ip": "10.0.0.15",
+      "country": "IN",
+      "host": "HOST-01",
+      "domain": "",
+      "file": ""
+    },
+    {
+      "id": "LOG-001-002",
+      "display_time": "09:02",
+      "timestamp": "2026-07-06T09:02:00Z",
+      "source": "azure_ad",
+      "event": "normal_activity",
+      "user": "riya@acme.com",
+      "ip": "10.0.0.15",
+      "country": "IN",
+      "host": "HOST-01",
+      "domain": "",
+      "file": ""
+    },
+    {
+      "id": "LOG-001-003",
+      "display_time": "09:03",
+      "timestamp": "2026-07-06T09:03:00Z",
+      "source": "azure_ad",
+      "event": "normal_activity",
+      "user": "riya@acme.com",
+      "ip": "10.0.0.15",
+      "country": "IN",
+      "host": "HOST-01",
+      "domain": "",
+      "file": ""
+    },
+    {
+      "id": "LOG-001-004",
+      "display_time": "09:04",
+      "timestamp": "2026-07-06T09:04:00Z",
+      "source": "azure_ad",
+      "event": "normal_activity",
+      "user": "riya@acme.com",
+      "ip": "10.0.0.15",
+      "country": "IN",
+      "host": "HOST-01",
+      "domain": "",
+      "file": ""
+    },
+    {
+      "id": "LOG-001-005",
+      "display_time": "09:05",
+      "timestamp": "2026-07-06T09:05:00Z",
+      "source": "azure_ad",
+      "event": "vpn_failed",
+      "user": "riya@acme.com",
+      "ip": "185.44.10.20",
+      "country": "RU",
+      "host": "HOST-01",
+      "domain": "evil.example.com",
+      "file": ""
+    },
+    {
+      "id": "LOG-001-006",
+      "display_time": "09:06",
+      "timestamp": "2026-07-06T09:06:00Z",
+      "source": "azure_ad",
+      "event": "normal_activity",
+      "user": "riya@acme.com",
+      "ip": "185.44.10.20",
+      "country": "RU",
+      "host": "HOST-01",
+      "domain": "evil.example.com",
+      "file": ""
+    },
+    {
+      "id": "LOG-001-007",
+      "display_time": "09:07",
+      "timestamp": "2026-07-06T09:07:00Z",
+      "source": "azure_ad",
+      "event": "normal_activity",
+      "user": "riya@acme.com",
+      "ip": "185.44.10.20",
+      "country": "RU",
+      "host": "HOST-01",
+      "domain": "evil.example.com",
+      "file": ""
+    },
+    {
+      "id": "LOG-001-008",
+      "display_time": "09:08",
+      "timestamp": "2026-07-06T09:08:00Z",
+      "source": "vpn",
+      "event": "normal_activity",
+      "user": "riya@acme.com",
+      "ip": "185.44.10.20",
+      "country": "RU",
+      "host": "HOST-01",
+      "domain": "evil.example.com",
+      "file": ""
+    },
+    {
+      "id": "LOG-001-009",
+      "display_time": "09:09",
+      "timestamp": "2026-07-06T09:09:00Z",
+      "source": "vpn",
+      "event": "normal_activity",
+      "user": "riya@acme.com",
+      "ip": "185.44.10.20",
+      "country": "RU",
+      "host": "HOST-01",
+      "domain": "evil.example.com",
+      "file": ""
+    },
+    {
+      "id": "LOG-001-010",
+      "display_time": "09:10",
+      "timestamp": "2026-07-06T09:10:00Z",
+      "source": "vpn",
+      "event": "normal_activity",
+      "user": "riya@acme.com",
+      "ip": "185.44.10.20",
+      "country": "RU",
+      "host": "HOST-01",
+      "domain": "evil.example.com",
+      "file": ""
+    },
+    {
+      "id": "LOG-001-011",
+      "display_time": "09:11",
+      "timestamp": "2026-07-06T09:11:00Z",
+      "source": "vpn",
+      "event": "normal_activity",
+      "user": "riya@acme.com",
+      "ip": "185.44.10.20",
+      "country": "RU",
+      "host": "HOST-01",
+      "domain": "evil.example.com",
+      "file": ""
+    },
+    {
+      "id": "LOG-001-012",
+      "display_time": "09:12",
+      "timestamp": "2026-07-06T09:12:00Z",
+      "source": "vpn",
+      "event": "normal_activity",
+      "user": "riya@acme.com",
+      "ip": "185.44.10.20",
+      "country": "RU",
+      "host": "HOST-01",
+      "domain": "evil.example.com",
+      "file": ""
+    },
+    {
+      "id": "LOG-001-013",
+      "display_time": "09:13",
+      "timestamp": "2026-07-06T09:13:00Z",
+      "source": "vpn",
+      "event": "normal_activity",
+      "user": "riya@acme.com",
+      "ip": "185.44.10.20",
+      "country": "RU",
+      "host": "HOST-01",
+      "domain": "evil.example.com",
+      "file": ""
+    },
+    {
+      "id": "LOG-001-014",
+      "display_time": "09:14",
+      "timestamp": "2026-07-06T09:14:00Z",
+      "source": "vpn",
+      "event": "normal_activity",
+      "user": "riya@acme.com",
+      "ip": "185.44.10.20",
+      "country": "RU",
+      "host": "HOST-01",
+      "domain": "evil.example.com",
+      "file": ""
+    },
+    {
+      "id": "LOG-001-015",
+      "display_time": "09:15",
+      "timestamp": "2026-07-06T09:15:00Z",
+      "source": "microsoft_defender",
+      "event": "normal_activity",
+      "user": "riya@acme.com",
+      "ip": "185.44.10.20",
+      "country": "RU",
+      "host": "HOST-01",
+      "domain": "evil.example.com",
+      "file": ""
+    },
+    {
+      "id": "LOG-001-016",
+      "display_time": "09:16",
+      "timestamp": "2026-07-06T09:16:00Z",
+      "source": "microsoft_defender",
+      "event": "normal_activity",
+      "user": "riya@acme.com",
+      "ip": "185.44.10.20",
+      "country": "RU",
+      "host": "HOST-01",
+      "domain": "evil.example.com",
+      "file": ""
+    },
+    {
+      "id": "LOG-001-017",
+      "display_time": "09:17",
+      "timestamp": "2026-07-06T09:17:00Z",
+      "source": "microsoft_defender",
+      "event": "normal_activity",
+      "user": "riya@acme.com",
+      "ip": "185.44.10.20",
+      "country": "RU",
+      "host": "HOST-01",
+      "domain": "evil.example.com",
+      "file": ""
+    },
+    {
+      "id": "LOG-001-018",
+      "display_time": "09:18",
+      "timestamp": "2026-07-06T09:18:00Z",
+      "source": "microsoft_defender",
+      "event": "normal_activity",
+      "user": "riya@acme.com",
+      "ip": "185.44.10.20",
+      "country": "RU",
+      "host": "HOST-01",
+      "domain": "evil.example.com",
+      "file": ""
+    },
+    {
+      "id": "LOG-001-019",
+      "display_time": "09:19",
+      "timestamp": "2026-07-06T09:19:00Z",
+      "source": "microsoft_defender",
+      "event": "normal_activity",
+      "user": "riya@acme.com",
+      "ip": "185.44.10.20",
+      "country": "RU",
+      "host": "HOST-01",
+      "domain": "evil.example.com",
+      "file": "payload.exe"
+    },
+    {
+      "id": "LOG-001-020",
+      "display_time": "09:20",
+      "timestamp": "2026-07-06T09:20:00Z",
+      "source": "microsoft_defender",
+      "event": "normal_activity",
+      "user": "riya@acme.com",
+      "ip": "185.44.10.20",
+      "country": "RU",
+      "host": "HOST-01",
+      "domain": "evil.example.com",
+      "file": "payload.exe"
+    },
+    {
+      "id": "LOG-001-021",
+      "display_time": "09:21",
+      "timestamp": "2026-07-06T09:21:00Z",
+      "source": "microsoft_defender",
+      "event": "normal_activity",
+      "user": "riya@acme.com",
+      "ip": "185.44.10.20",
+      "country": "RU",
+      "host": "HOST-01",
+      "domain": "evil.example.com",
+      "file": "payload.exe"
+    },
+    {
+      "id": "LOG-001-022",
+      "display_time": "09:22",
+      "timestamp": "2026-07-06T09:22:00Z",
+      "source": "microsoft_defender",
+      "event": "normal_activity",
+      "user": "riya@acme.com",
+      "ip": "185.44.10.20",
+      "country": "RU",
+      "host": "HOST-01",
+      "domain": "evil.example.com",
+      "file": "payload.exe"
+    },
+    {
+      "id": "LOG-001-023",
+      "display_time": "09:23",
+      "timestamp": "2026-07-06T09:23:00Z",
+      "source": "microsoft_defender",
+      "event": "normal_activity",
+      "user": "riya@acme.com",
+      "ip": "185.44.10.20",
+      "country": "RU",
+      "host": "HOST-01",
+      "domain": "evil.example.com",
+      "file": "payload.exe"
+    },
+    {
+      "id": "LOG-001-024",
+      "display_time": "09:24",
+      "timestamp": "2026-07-06T09:24:00Z",
+      "source": "microsoft_defender",
+      "event": "normal_activity",
+      "user": "riya@acme.com",
+      "ip": "185.44.10.20",
+      "country": "RU",
+      "host": "HOST-01",
+      "domain": "evil.example.com",
+      "file": "payload.exe"
+    },
+    {
+      "id": "LOG-001-025",
+      "display_time": "09:25",
+      "timestamp": "2026-07-06T09:25:00Z",
+      "source": "microsoft_defender",
+      "event": "normal_activity",
+      "user": "riya@acme.com",
+      "ip": "185.44.10.20",
+      "country": "RU",
+      "host": "HOST-01",
+      "domain": "evil.example.com",
+      "file": "payload.exe"
+    }
+  ],
+  "expected_investigation": {
+    "attack_type": "Possible Account Compromise",
+    "severity": "High",
+    "confidence": 92,
+    "summary": "Evidence indicates possible account compromise with high confidence.",
+    "timeline": [
+      {
+        "time": "09:05",
+        "title": "Initial suspicious activity",
+        "source_log_ids": [
+          "LOG-001-005"
+        ]
+      },
+      {
+        "time": "09:15",
+        "title": "Alert triggered",
+        "source_log_ids": [
+          "LOG-001-015"
+        ]
+      },
+      {
+        "time": "09:22",
+        "title": "Threat confirmed",
+        "source_log_ids": [
+          "LOG-001-022"
+        ]
+      }
+    ],
+    "findings": [
+      {
+        "finding": "Suspicious authentication activity",
+        "severity": "High",
+        "evidence": "Multiple correlated security events observed.",
+        "source_log_ids": [
+          "LOG-001-005",
+          "LOG-001-015"
+        ]
+      }
+    ],
+    "mitre": [
+      {
+        "technique_id": "T1078",
+        "technique": "Valid Accounts",
+        "source_log_ids": [
+          "LOG-001-005"
+        ]
+      },
+      {
+        "technique_id": "T1110",
+        "technique": "Brute Force",
+        "source_log_ids": [
+          "LOG-001-006"
+        ]
+      }
+    ],
+    "recommendations": [
+      "Disable the affected account.",
+      "Reset credentials and revoke active sessions.",
+      "Isolate the affected endpoint.",
+      "Perform enterprise-wide IOC hunting."
+    ],
+    "entities": {
+      "users": [
+        "riya@acme.com"
+      ],
+      "ip_addresses": [
+        "185.44.10.20"
+      ],
+      "hostnames": [
+        "HOST-01"
+      ],
+      "domains": [
+        "evil.example.com"
+      ],
+      "files": [
+        "payload.exe"
+      ],
+      "countries": [
+        "IN",
+        "RU"
+      ]
+    }
+  }
+}

@@ -28,10 +28,13 @@ logging.basicConfig(
 logger = logging.getLogger("intellisoc")
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
-REPO_ROOT = Path(__file__).resolve().parents[2]
-SAMPLE_LOGS_DIR = REPO_ROOT / "sample_logs"
-ALERTS_FILE = REPO_ROOT / "backend" / "app" / "sample_data" / "alerts.json"
-USERS_FILE = REPO_ROOT / "backend" / "app" / "sample_data" / "users.json"
+APP_DIR = Path(__file__).resolve().parent
+BACKEND_DIR = APP_DIR.parent
+SAMPLE_LOGS_DIR = BACKEND_DIR.parent / "sample_logs"
+if not SAMPLE_LOGS_DIR.exists():
+    SAMPLE_LOGS_DIR = BACKEND_DIR / "sample_logs"
+ALERTS_FILE = APP_DIR / "sample_data" / "alerts.json"
+USERS_FILE = APP_DIR / "sample_data" / "users.json"
 
 # ── Groq client ───────────────────────────────────────────────────────────────
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
@@ -183,22 +186,36 @@ def verify_password(password: str, pw_hash: str, salt: str) -> bool:
     return secrets.compare_digest(expected_hash, pw_hash)
 
 
+# In-memory users cache to support read-only filesystems (like Vercel)
+_in_memory_users: list[dict[str, Any]] | None = None
+
 async def load_users_async() -> list[dict[str, Any]]:
+    global _in_memory_users
+    if _in_memory_users is not None:
+        return _in_memory_users
+    
     if not USERS_FILE.exists():
-        return []
+        _in_memory_users = []
+        return _in_memory_users
     try:
-        return await read_json_async(USERS_FILE)
+        _in_memory_users = await read_json_async(USERS_FILE)
     except Exception as e:
         logger.error("Failed to load users: %s", e)
-        return []
+        _in_memory_users = []
+    return _in_memory_users
 
 
 def _write_json_sync_data(path: Path, data: Any) -> None:
-    with path.open("w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2)
+    try:
+        with path.open("w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+    except Exception as e:
+        logger.warning("Could not persist users to filesystem (expected on read-only hosting like Vercel): %s", e)
 
 
 async def save_users_async(users: list[dict[str, Any]]) -> None:
+    global _in_memory_users
+    _in_memory_users = list(users)  # Keep in-memory cache updated
     import asyncio
     loop = asyncio.get_event_loop()
     await loop.run_in_executor(None, _write_json_sync_data, USERS_FILE, users)
