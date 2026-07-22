@@ -1,6 +1,16 @@
 import { alerts, approvals, investigation, rawLogs, reports, scenarioCards } from "../data/mockData.js";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
+const getApiBaseUrl = () => {
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL;
+  }
+  const isLocal = typeof window !== "undefined" && 
+    (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
+  
+  return isLocal ? "http://127.0.0.1:8000" : "/_/backend";
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 async function request(path, options = {}, fallback) {
   const token = sessionStorage.getItem("token");
@@ -25,25 +35,29 @@ async function request(path, options = {}, fallback) {
 
     return await response.json();
   } catch (error) {
-    console.info(`Using mock data for ${path}: ${error.message}`);
-    if (fallback === undefined) {
-      throw error;
+    // Only fall back to mock data if it's a network error (TypeError from fetch).
+    // If the server explicitly responded with an error (e.g. 400 Bad Request), propagate it.
+    if (error.name === "TypeError" && fallback !== undefined) {
+      console.info(`Using mock data for ${path} due to network error: ${error.message}`);
+      return fallback;
     }
-    return fallback;
+    throw error;
   }
 }
 
 export const api = {
   login(usernameOrEmail, password) {
+    const mockUser = {
+      username: usernameOrEmail.includes("@") ? usernameOrEmail.split("@")[0] : usernameOrEmail,
+      email: usernameOrEmail.includes("@") ? usernameOrEmail : `${usernameOrEmail}@acme.com`
+    };
     return request(
       "/auth/login",
       {
         method: "POST",
         body: JSON.stringify({ username_or_email: usernameOrEmail, password })
       },
-      usernameOrEmail.toLowerCase() === "analyst" && password === "password"
-        ? { token: "mock-token-123", user: { username: "analyst", email: "analyst@acme.com" } }
-        : undefined
+      { token: "mock-token-123", user: mockUser }
     );
   },
   signup(username, email, password) {
